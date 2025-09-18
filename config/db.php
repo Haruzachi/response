@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
-$dbname = "emergency_system";
-$username = "root";
+$dbname = "er_es";
+$username = "er_es";
 $password = "Admin123";
 
 try {
