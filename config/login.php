@@ -3,23 +3,25 @@ require_once "../config/db.php";
 session_start();
 
 //______________________________________________//
-//CREATE DEFAULT ADMIN AND STAFF ACCOUNTS 
+// CREATE DEFAULT ADMIN AND STAFF ACCOUNTS
 //______________________________________________//
 try {
     // Check and create default admin
     $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     $checkAdmin->execute();
     if ($checkAdmin->fetchColumn() == 0) {
+        $hashedPassword = password_hash('123', PASSWORD_DEFAULT);
         $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertAdmin->execute(['admin', '123', 'admin']); // default admin account
+        $insertAdmin->execute(['admin', $hashedPassword, 'admin']); // default admin
     }
 
     // Check and create default staff
     $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
     $checkStaff->execute();
     if ($checkStaff->fetchColumn() == 0) {
+        $hashedPassword = password_hash('123', PASSWORD_DEFAULT);
         $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertStaff->execute(['staff', '123', 'staff']); // default staff account
+        $insertStaff->execute(['staff', $hashedPassword, 'staff']); // default staff
     }
 
 } catch (PDOException $e) {
@@ -27,17 +29,18 @@ try {
 }
 
 //______________________________________________//
-//LOGIN HANDLER 
+// LOGIN HANDLER
 //______________________________________________//
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) {
     $username = trim($_POST['username']);
-    $password = $_POST['password']; // using plain text for now
+    $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
-    $stmt->execute([$username, $password]);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
+    if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user'] = [
             'id' => $user['id'],
             'username' => $user['username'],
@@ -60,6 +63,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } else {
         $error = "Invalid username or password!";
+    }
+}
+
+//______________________________________________//
+// FORGOT PASSWORD HANDLER
+//______________________________________________//
+$fp_error = '';
+$fp_success = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
+    $username = trim($_POST['username']);
+    $new_password = trim($_POST['new_password']);
+    $confirm_password = trim($_POST['confirm_password']);
+
+    if (empty($username) || empty($new_password) || empty($confirm_password)) {
+        $fp_error = "All fields are required.";
+    } elseif ($new_password !== $confirm_password) {
+        $fp_error = "Passwords do not match.";
+    } else {
+        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $update = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
+            if ($update->execute([$hashed_password, $username])) {
+                $fp_success = "Password successfully updated!";
+            } else {
+                $fp_error = "Something went wrong.";
+            }
+        } else {
+            $fp_error = "Username not found.";
+        }
     }
 }
 ?>
@@ -187,12 +223,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">Login</button>
                 </form>
 
-                <p class="text-center text-white text-sm mt-6">
-                    Don't have an account? 
-                    <a href="./register.php" class="text-blue-400 hover:underline">Register here</a>
-                </p>
+                <div class="flex justify-between mt-4 text-sm">
+                    <p class="text-white">Don't have an account? <a href="./register.php" class="text-blue-400 hover:underline">Register here</a></p>
+                    <p><a href="javascript:void(0)" onclick="openForgotModal()" class="text-yellow-400 hover:underline">Forgot Password?</a></p>
+                </div>
             </div>
         </main>
+
+        <!-- FORGOT PASSWORD MODAL -->
+        <div id="forgotPasswordModal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-md z-50">
+            <div class="relative text-black w-full max-w-md bg-gradient-to-b from-stone-800 to-sky-800 rounded-3xl shadow-2xl overflow-hidden p-6">
+                <h2 class="text-xl text-white font-bold mb-4 text-center">Reset Password</h2>
+                
+                <?php if (!empty($fp_error)): ?>
+                    <p class="bg-red-100 text-red-600 p-2 rounded mb-4 text-center"><?= $fp_error ?></p>
+                <?php endif; ?>
+                <?php if (!empty($fp_success)): ?>
+                    <p class="bg-green-100 text-green-600 p-2 rounded mb-4 text-center"><?= $fp_success ?></p>
+                <?php endif; ?>
+
+                <form method="POST" class="space-y-4">
+                    <input type="hidden" name="forgot_password" value="1">
+                    <div>
+                        <input type="text" name="username" placeholder="Username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                        <input type="password" name="new_password" placeholder="New Password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                        <input type="password" name="confirm_password" placeholder="Confirm Password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <div class="flex justify-between mt-4">
+                        <button type="button" onclick="closeForgotModal()" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded-lg transition">Cancel</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openForgotModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('hidden');
+            document.getElementById('forgotPasswordModal').classList.add('flex');
+            document.getElementById('dashboardWrapper').classList.add('blurred');
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgotPasswordModal').classList.add('hidden');
+            document.getElementById('forgotPasswordModal').classList.remove('flex');
+            document.getElementById('dashboardWrapper').classList.remove('blurred');
+        }
+    </script>
 
         <div id="callModal" class="fixed inset-0 hidden items-start justify-center bg-black/70 backdrop-blur-md z-50 pt-20">
             <div class="relative w-full max-w-sm bg-stone-900 rounded-3xl shadow-2xl overflow-hidden">
