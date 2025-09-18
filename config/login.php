@@ -99,114 +99,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login Form</title>
-    <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
-    <link rel="stylesheet" href="../css/responsive.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Form</title>
+  <link rel="icon" type="image/x-icon" href="../img/Logocircle.png">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
     <style>
         .logo-font {
             font-family: 'Poppins', sans-serif;
             letter-spacing: 1px;
         }
-
-        /* ===========================================
-   MOBILE RESPONSIVE STYLES
-=========================================== */
-
-/* Small screens: 320px - 640px */
-@media (max-width: 640px) {
-    body {
-        font-size: 14px;
-    }
-
-    header {
-        padding: 1rem;
-    }
-
-    header nav {
-        display: none; /* hide desktop nav */
-    }
-
-    #mobile-menu a {
-        font-size: 14px;
-        padding: 0.75rem;
-    }
-
-    .logo-font {
-        font-size: 1rem;
-    }
-
-    main div.bg-gradient-to-b {
-        padding: 1.5rem;
-        border-radius: 1rem;
-        width: 95%;
-    }
-
-    main div.bg-gradient-to-b img {
-        width: 64px;
-        height: 64px;
-    }
-
-    main h2 {
-        font-size: 1.5rem;
-    }
-
-    form input {
-        padding: 0.75rem;
-        font-size: 14px;
-    }
-
-    form button {
-        padding: 0.75rem;
-        font-size: 14px;
-    }
-
-    #forgotPasswordModal form input {
-        padding: 0.75rem;
-        font-size: 14px;
-    }
-
-    #forgotPasswordModal button {
-        padding: 0.5rem 1rem;
-        font-size: 13px;
-    }
-
-    #callModal .flex div img {
-        width: 80px;
-        height: 80px;
-    }
-
-    #callModal button {
-        padding: 0.5rem;
-    }
-
-    .md\\:flex {
-        display: none !important;
-    }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-    main div.bg-gradient-to-b {
-        width: 80%;
-        padding: 2rem;
-    }
-
-    main h2 {
-        font-size: 1.75rem;
-    }
-}
-
-.blurred {
-    filter: blur(4px);
-    transition: filter 0.3s ease-in-out;
-}
-
-input:focus, button:focus {
-    outline: none;
-    ring-width: 2px;
-}
     </style>
     <script>
         function toggleMenu() {
