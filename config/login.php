@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
 <head>
     <meta charset="UTF-8">
     <title>Login Form</title>
-    <link rel="icon" type="../image/x-icon" href="../img/logocircle.png">
+    <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
     <link rel="stylesheet" href="../css/responsive.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">

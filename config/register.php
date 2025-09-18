@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <title>Register Form</title>
-  <link rel="icon" type="image/x-icon" href="../img/logocircle.png">
+  <link rel="icon" type="image/x-icon" href="../img/Logocircle.png">
   <link rel="stylesheet" href="../css/responsive.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="max-w-7xl mx-auto px-4 py-7 flex justify-between items-center">
 
       <div class="flex items-center space-x-3">
-        <img src="../img/logo.png" alt="My Logo" class="h-10 w-10 rounded-full">
+        <img src="../img/Logo.png" alt="My Logo" class="h-10 w-10 rounded-full">
         <span class="logo-font text-white">Emergency Response</span>
       </div>
 
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="relative">
           <div class="absolute inset-0 rounded-full bg-red-600 opacity-30 animate-ping"></div>
           <div class="absolute inset-0 rounded-full bg-red-500 opacity-20 animate-ping delay-150"></div>
-          <img src="../img/logo.png" alt="Emergency Logo" class="relative w-24 h-24 rounded-full border-4 border-red-600 shadow-lg">
+          <img src="../img/Logo.png" alt="Emergency Logo" class="relative w-24 h-24 rounded-full border-4 border-red-600 shadow-lg">
         </div>
 
         <p id="callStatus" class="text-gray-300 text-lg mt-4">Connecting to Dispatcher...</p>
