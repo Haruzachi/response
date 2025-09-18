@@ -110,6 +110,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
             font-family: 'Poppins', sans-serif;
             letter-spacing: 1px;
         }
+
+        @media (max-width: 768px) {
+  aside {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100%;
+    z-index: 50;
+    transition: left 0.3s ease;
+  }
+  aside.active {
+    left: 0;
+  }
+  main {
+    margin-left: 0 !important;
+  }
+  #sidebarOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 40;
+  }
+  #sidebarOverlay.active {
+    display: block;
+  }
+}
+
     </style>
     <script>
         function toggleMenu() {

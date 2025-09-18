@@ -280,12 +280,12 @@ $responders = [
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 <style>
-  body { margin:0; padding:0; font-family:sans-serif; }
   #map {
     height: 711px;
+    width: 100%;
     border-radius: 0.5rem;
-    z-index: 0; /* ensures map stays behind modals */
-}
+    z-index: 0;
+  }
 .modal {
     z-index: 50; /* your modal should be above the map */
 }
