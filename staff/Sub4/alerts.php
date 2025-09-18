@@ -280,15 +280,35 @@ $responders = [
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 <style>
+  main {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Make sure the map fills the entire remaining area in main */
   #map {
-  height: 100vh;
-  width: 100vw;
-  border-radius: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
+    flex: 1;            /* This allows map to expand fully */
+    width: 100%;         /* Take full width */
+    height: 100%;        /* Fill vertical space */
+    border-radius: 0.5rem;
+    position: relative;
+    z-index: 0;
+  }
+
+  /* Make body and html take full height to allow main to scale */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ensure sidebar doesn't overlap unexpectedly */
+  aside {
+    height: 100%;
+  }
 .modal {
     z-index: 50; /* your modal should be above the map */
 }
