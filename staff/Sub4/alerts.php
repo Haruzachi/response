@@ -281,11 +281,14 @@ $responders = [
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 <style>
   #map {
-    height: 711px;
-    width: 100%;
-    border-radius: 0.5rem;
-    z-index: 0;
-  }
+  height: 100vh;
+  width: 100vw;
+  border-radius: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
 .modal {
     z-index: 50; /* your modal should be above the map */
 }
