@@ -3,25 +3,23 @@ require_once "../config/db.php";
 session_start();
 
 //______________________________________________//
-// CREATE DEFAULT ADMIN AND STAFF ACCOUNTS
+//CREATE DEFAULT ADMIN AND STAFF ACCOUNTS 
 //______________________________________________//
 try {
     // Check and create default admin
     $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     $checkAdmin->execute();
     if ($checkAdmin->fetchColumn() == 0) {
-        $hashedPassword = password_hash('123', PASSWORD_DEFAULT);
         $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertAdmin->execute(['admin', $hashedPassword, 'admin']); // default admin
+        $insertAdmin->execute(['admin', '123', 'admin']); // default admin account
     }
 
     // Check and create default staff
     $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
     $checkStaff->execute();
     if ($checkStaff->fetchColumn() == 0) {
-        $hashedPassword = password_hash('123', PASSWORD_DEFAULT);
         $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertStaff->execute(['staff', $hashedPassword, 'staff']); // default staff
+        $insertStaff->execute(['staff', '123', 'staff']); // default staff account
     }
 
 } catch (PDOException $e) {
@@ -29,18 +27,17 @@ try {
 }
 
 //______________________________________________//
-// LOGIN HANDLER
+//LOGIN HANDLER 
 //______________________________________________//
-$error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
-    $password = $_POST['password'];
+    $password = $_POST['password']; // using plain text for now
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->execute([$username]);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
+    $stmt->execute([$username, $password]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user) {
         $_SESSION['user'] = [
             'id' => $user['id'],
             'username' => $user['username'],
