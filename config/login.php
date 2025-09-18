@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
         <header class="w-full bg-gradient-to-b from-green-800 to-red-800 backdrop-blur-md shadow-md">
             <div class="max-w-7xl mx-auto px-4 py-7 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <img src="../img/logo.png" alt="My Logo" class="h-10 w-10 rounded-full">
+                    <img src="../img/Logo.png" alt="My Logo" class="h-10 w-10 rounded-full">
                     <span class="logo-font text-white">Emergency Response</span>
                 </div>
 
@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
         <main class="flex-1 flex items-center justify-center px-4">
             <div class="bg-gradient-to-b from-stone-800 to-sky-800 rounded-2xl text-black shadow-lg w-full max-w-md p-8">
                 <div class="flex justify-center mb-6">
-                    <img src="../img/logo.png" alt="Logo" class="w-20 h-20 rounded-full shadow-md bg-stone-800 p-2">
+                    <img src="../img/Logo.png" alt="Logo" class="w-20 h-20 rounded-full shadow-md bg-stone-800 p-2">
                 </div>
 
                 <h2 class="text-2xl text-white font-bold text-center mb-2">Emergency Response System</h2>
@@ -291,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                     <div class="relative">
                         <div class="absolute inset-0 rounded-full bg-red-600 opacity-30 animate-ping"></div>
                         <div class="absolute inset-0 rounded-full bg-red-500 opacity-20 animate-ping delay-150"></div>
-                        <img src="../img/logo.png" alt="Emergency Logo" class="relative w-24 h-24 rounded-full border-4 border-red-600 shadow-lg">
+                        <img src="../img/Logo.png" alt="Emergency Logo" class="relative w-24 h-24 rounded-full border-4 border-red-600 shadow-lg">
                     </div>
                     <p id="callStatus" class="text-gray-300 text-lg mt-4">Connecting to Dispatcher...</p>
                     <p class="text-gray-400 text-sm">Please wait while we connect your call</p>
