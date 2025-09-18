@@ -58,31 +58,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       letter-spacing: 1px;
     }
 
-    @media (max-width: 768px) {
-  aside {
-    position: fixed;
-    left: -100%;
-    top: 0;
-    height: 100%;
-    z-index: 50;
-    transition: left 0.3s ease;
-  }
-  aside.active {
-    left: 0;
-  }
-  main {
-    margin-left: 0 !important;
-  }
-  #sidebarOverlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 40;
-  }
-  #sidebarOverlay.active {
-    display: block;
-  }
+    /* ===========================================
+   MOBILE RESPONSIVE STYLES
+=========================================== */
+
+/* Small screens: 320px - 640px */
+@media (max-width: 640px) {
+    body {
+        font-size: 14px;
+    }
+
+    header {
+        padding: 1rem;
+    }
+
+    nav {
+        display: none; /* hide desktop nav */
+    }
+
+    #mobile-menu a {
+        font-size: 14px;
+        padding: 0.75rem;
+    }
+
+    .logo-font {
+        font-size: 1rem;
+    }
+
+    main div.bg-gradient-to-b {
+        width: 95%;
+        padding: 1.5rem;
+        border-radius: 1rem;
+    }
+
+    main div.bg-gradient-to-b img {
+        width: 64px;
+        height: 64px;
+    }
+
+    main h2 {
+        font-size: 1.5rem;
+    }
+
+    form input {
+        padding: 0.75rem;
+        font-size: 14px;
+    }
+
+    form button {
+        padding: 0.75rem;
+        font-size: 14px;
+    }
+
+    #callModal .flex div img {
+        width: 80px;
+        height: 80px;
+    }
+
+    #callModal button {
+        padding: 0.5rem;
+    }
+
+
+    .md\\:flex {
+        display: none !important;
+    }
+}
+
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    main div.bg-gradient-to-b {
+        width: 80%;
+        padding: 2rem;
+    }
+
+    main h2 {
+        font-size: 1.75rem;
+    }
+}
+
+
+.blurred {
+    filter: blur(4px);
+    transition: filter 0.3s ease-in-out;
+}
+
+
+input:focus, button:focus {
+    outline: none;
+    ring-width: 2px;
 }
   </style>
 
