@@ -321,7 +321,7 @@ $locations = $query->fetchAll(PDO::FETCH_ASSOC);
 
   <style>
     #map {
-    height: calc(110vh - 110px); /* same as your container div */
+    height: calc(108vh - 108px); /* same as your container div */
     border-radius: 0.5rem;
     z-index: 0;
 }
