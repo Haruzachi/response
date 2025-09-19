@@ -6,109 +6,116 @@ session_start();
 // CREATE DEFAULT ADMIN AND STAFF ACCOUNTS
 //______________________________________________//
 try {
-    // Function to create default users securely
-    function createDefaultUser($conn, $username, $password, $role) {
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
-        $stmt->execute([$username]);
-        if ($stmt->fetchColumn() == 0) {
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $insert = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-            $insert->execute([$username, $hashedPassword, $role]);
-        }
+    // Create default admin if not exists
+    $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
+    $checkAdmin->execute();
+    if ($checkAdmin->fetchColumn() == 0) {
+        $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+        $insertAdmin->execute(['admin', '123', 'admin']); // default admin account
     }
 
-    createDefaultUser($conn, 'admin', '123', 'admin');
-    createDefaultUser($conn, 'staff', '123', 'staff');
-
+    // Create default staff if not exists
+    $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
+    $checkStaff->execute();
+    if ($checkStaff->fetchColumn() == 0) {
+        $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+        $insertStaff->execute(['staff', '123', 'staff']); // default staff account
+    }
 } catch (PDOException $e) {
     die("Error creating default accounts: " . $e->getMessage());
 }
 
 //______________________________________________//
-// CSRF TOKEN SETUP
+// LOGIN ATTEMPTS SYSTEM (2-minute lockout)
 //______________________________________________//
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['last_attempt_time'])) {
+    $_SESSION['last_attempt_time'] = time();
 }
 
-//______________________________________________//
-// LOGIN ATTEMPTS TRACKING
-//______________________________________________//
-// Initialize login attempts if not set
-if (!isset($_SESSION['login_attempts'])) {
+$lockout_duration = 120; // 2 minutes
+$max_attempts = 3;       // Max allowed failed attempts
+
+// Reset attempts if 2 minutes passed
+if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['last_attempt_time'] = time();
 }
 
-// Set reset duration to 2 minutes (120 seconds)
-$lockout_duration = 120; 
-
-// Reset attempts after 2 minutes
-if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
-    $_SESSION['login_attempts'] = 0;
-    $_SESSION['last_attempt_time'] = time(); // update to current time
-}
-
-// Lock account if too many failed attempts
-$max_attempts = 3; // maximum allowed attempts
 $lockout = $_SESSION['login_attempts'] >= $max_attempts;
 
 //______________________________________________//
 // LOGIN HANDLER
 //______________________________________________//
 $error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) {
     $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    $csrf_token = $_POST['csrf_token'];
+    $password = trim($_POST['password']);
 
-    // CSRF validation
-    if (!hash_equals($_SESSION['csrf_token'], $csrf_token)) {
-        $error = "Invalid request. Please refresh the page and try again.";
-    } elseif ($lockout) {
-        $error = "Too many failed login attempts. Please wait 10 minutes before trying again.";
+    if ($lockout) {
+        // Show remaining lockout time
+        $remaining_time = $lockout_duration - (time() - $_SESSION['last_attempt_time']);
+        $error = "Too many failed attempts. Please wait {$remaining_time} seconds before trying again.";
     } else {
+        // Fetch user by username
         $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user['password'])) {
-            // Reset login attempts
-            $_SESSION['login_attempts'] = 0;
-
-            // Regenerate session ID for security
-            session_regenerate_id(true);
-
-            // Store session data
-            $_SESSION['user'] = [
-                'id' => $user['id'],
-                'username' => $user['username'],
-                'role' => $user['role'],
-                'profile_image' => $user['profile_image'] ?? 'default.png'
-            ];
-
-            $_SESSION['just_logged_in'] = true;
-
-            // Redirect based on role
-            switch ($user['role']) {
-                case 'admin':
-                    header("Location: ../data/loadingadmin.php");
-                    break;
-                case 'staff':
-                    header("Location: ../data/loadingstaff.php");
-                    break;
-                default:
-                    header("Location: ../data/loadinguser.php");
+        if ($user) {
+            // If user password is plain text (admin/staff default accounts)
+            // or hashed (users who changed password via forgot password)
+            $isValidPassword = false;
+            if (password_verify($password, $user['password'])) {
+                $isValidPassword = true;
+            } elseif ($password === $user['password']) {
+                $isValidPassword = true;
             }
-            exit;
+
+            if ($isValidPassword) {
+                // Successful login
+                $_SESSION['login_attempts'] = 0; // Reset failed attempts
+                $_SESSION['last_attempt_time'] = time();
+
+                $_SESSION['user'] = [
+                    'id' => $user['id'],
+                    'username' => $user['username'],
+                    'role' => $user['role'],
+                    'profile_image' => $user['profile_image'] ?? 'default.png'
+                ];
+
+                $_SESSION['just_logged_in'] = true;
+
+                // Redirect based on role
+                switch ($user['role']) {
+                    case 'admin':
+                        header("Location: ../data/loadingadmin.php");
+                        break;
+                    case 'staff':
+                        header("Location: ../data/loadingstaff.php");
+                        break;
+                    default:
+                        header("Location: ../data/loadinguser.php");
+                        break;
+                }
+                exit;
+            } else {
+                // Wrong password
+                $_SESSION['login_attempts']++;
+                $_SESSION['last_attempt_time'] = time();
+                $error = "Invalid username or password!";
+            }
         } else {
+            // Username not found
             $_SESSION['login_attempts']++;
             $_SESSION['last_attempt_time'] = time();
             $error = "Invalid username or password!";
         }
     }
 }
+
 //______________________________________________//
 // FORGOT PASSWORD HANDLER
 //______________________________________________//
@@ -124,11 +131,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     } elseif ($new_password !== $confirm_password) {
         $fp_error = "Passwords do not match.";
     } else {
+        // Check if username exists
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
+            // Hash the new password before updating
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $update = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
             if ($update->execute([$hashed_password, $username])) {
