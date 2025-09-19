@@ -3,66 +3,106 @@ require_once "../config/db.php";
 session_start();
 
 //______________________________________________//
-//CREATE DEFAULT ADMIN AND STAFF ACCOUNTS 
+// CREATE DEFAULT ADMIN AND STAFF ACCOUNTS
 //______________________________________________//
 try {
-    // Check and create default admin
-    $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    $checkAdmin->execute();
-    if ($checkAdmin->fetchColumn() == 0) {
-        $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertAdmin->execute(['admin', '123', 'admin']); // default admin account
+    // Function to create default users securely
+    function createDefaultUser($conn, $username, $password, $role) {
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        if ($stmt->fetchColumn() == 0) {
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $insert = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+            $insert->execute([$username, $hashedPassword, $role]);
+        }
     }
 
-    // Check and create default staff
-    $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
-    $checkStaff->execute();
-    if ($checkStaff->fetchColumn() == 0) {
-        $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertStaff->execute(['staff', '123', 'staff']); // default staff account
-    }
+    createDefaultUser($conn, 'admin', '123', 'admin');
+    createDefaultUser($conn, 'staff', '123', 'staff');
 
 } catch (PDOException $e) {
     die("Error creating default accounts: " . $e->getMessage());
 }
 
 //______________________________________________//
-//LOGIN HANDLER 
+// CSRF TOKEN SETUP
 //______________________________________________//
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password']; // using plain text for now
-
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
-    $stmt->execute([$username, $password]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user) {
-        $_SESSION['user'] = [
-            'id' => $user['id'],
-            'username' => $user['username'],
-            'role' => $user['role'],
-            'profile_image' => $user['profile_image'] ?? 'default.png'
-        ];
-
-        $_SESSION['just_logged_in'] = true;
-
-        switch ($user['role']) {
-            case 'admin':
-                header("Location: ../data/loadingadmin.php");
-                break;
-            case 'staff':
-                header("Location: ../data/loadingstaff.php");
-                break;
-            default:
-                header("Location: ../data/loadinguser.php");
-        }
-        exit;
-    } else {
-        $error = "Invalid username or password!";
-    }
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+//______________________________________________//
+// LOGIN ATTEMPTS TRACKING
+//______________________________________________//
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+    $_SESSION['last_attempt_time'] = time();
+}
+
+// Reset attempts after 10 minutes
+if (time() - $_SESSION['last_attempt_time'] > 600) {
+    $_SESSION['login_attempts'] = 0;
+}
+
+// Lock account if too many failed attempts
+$lockout = $_SESSION['login_attempts'] >= 5;
+
+//______________________________________________//
+// LOGIN HANDLER
+//______________________________________________//
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
+    $csrf_token = $_POST['csrf_token'];
+
+    // CSRF validation
+    if (!hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = "Invalid request. Please refresh the page and try again.";
+    } elseif ($lockout) {
+        $error = "Too many failed login attempts. Please wait 10 minutes before trying again.";
+    } else {
+        $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($password, $user['password'])) {
+            // Reset login attempts
+            $_SESSION['login_attempts'] = 0;
+
+            // Regenerate session ID for security
+            session_regenerate_id(true);
+
+            // Store session data
+            $_SESSION['user'] = [
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'role' => $user['role'],
+                'profile_image' => $user['profile_image'] ?? 'default.png'
+            ];
+
+            $_SESSION['just_logged_in'] = true;
+
+            // Redirect based on role
+            switch ($user['role']) {
+                case 'admin':
+                    header("Location: ../data/loadingadmin.php");
+                    break;
+                case 'staff':
+                    header("Location: ../data/loadingstaff.php");
+                    break;
+                default:
+                    header("Location: ../data/loadinguser.php");
+            }
+            exit;
+        } else {
+            $_SESSION['login_attempts']++;
+            $_SESSION['last_attempt_time'] = time();
+            $error = "Invalid username or password!";
+        }
+    }
+}
 //______________________________________________//
 // FORGOT PASSWORD HANDLER
 //______________________________________________//
@@ -211,16 +251,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                 <?php endif; ?>
 
                 <form method="POST" class="space-y-4">
-                    <div>
-                        <label class="block text-white mb-1 text-sm">Username</label>
-                        <input type="text" name="username" placeholder="Enter your username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-white mb-1 text-sm">Password</label>
-                        <input type="password" name="password" placeholder="Enter your password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                    </div>
-                    <button class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">Login</button>
-                </form>
+    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+
+    <div>
+        <label class="block text-white mb-1 text-sm">Username</label>
+        <input type="text" name="username" placeholder="Enter your username" 
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+    </div>
+
+    <div>
+        <label class="block text-white mb-1 text-sm">Password</label>
+        <input type="password" name="password" placeholder="Enter your password" 
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+    </div>
+
+    <button type="submit" name="login" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+        Login
+    </button>
+</form>
 
                 <div class="flex justify-between mt-4 text-sm">
                     <p class="text-white">Don't have an account? <a href="./register.php" class="text-blue-400 hover:underline">Register here</a></p>
