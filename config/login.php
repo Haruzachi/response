@@ -34,18 +34,24 @@ if (empty($_SESSION['csrf_token'])) {
 //______________________________________________//
 // LOGIN ATTEMPTS TRACKING
 //______________________________________________//
+// Initialize login attempts if not set
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['last_attempt_time'] = time();
 }
 
-// Reset attempts after 10 minutes
-if (time() - $_SESSION['last_attempt_time'] > 600) {
+// Set reset duration to 2 minutes (120 seconds)
+$lockout_duration = 120; 
+
+// Reset attempts after 2 minutes
+if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
     $_SESSION['login_attempts'] = 0;
+    $_SESSION['last_attempt_time'] = time(); // update to current time
 }
 
 // Lock account if too many failed attempts
-$lockout = $_SESSION['login_attempts'] >= 5;
+$max_attempts = 3; // maximum allowed attempts
+$lockout = $_SESSION['login_attempts'] >= $max_attempts;
 
 //______________________________________________//
 // LOGIN HANDLER
