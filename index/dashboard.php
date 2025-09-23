@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 <div id="dashboardWrapper">
 
   <!---============================== TOP BAR ==============================--->
-  <header class="w-full fixed top-0 left-0 z-50 bg-gradient-to-b from-green-800 to-red-800 backdrop-blur-md shadow-md">
+  <header class="w-full fixed top-0 left-0 z-50 bg-gradient-to-b from-green-800 to-stone-800 backdrop-blur-md shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-7 flex justify-between items-center">
 
       <!---============================== LOGO ==============================--->
@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   }
 </script>
     <!---============================== MOBILE MENU ==============================--->
-    <div id="mobile-menu" class="hidden md:hidden bg-stone-900/90 bg-gradient-to-b from-green-800 to-red-800 backdrop-blur-md px-4 py-4 space-y-4">
+    <div id="mobile-menu" class="hidden md:hidden bg-stone-900/90 bg-gradient-to-b from-green-800 to-stone-800 backdrop-blur-md px-4 py-4 space-y-4">
       <a href="#home" class="block hover:text-blue-400 transition">Home</a>
       <a href="#services" class="block hover:text-blue-400 transition">Services</a>
       <a href="#contact" class="block hover:text-blue-400 transition">Contact Us</a>

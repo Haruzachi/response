@@ -89,7 +89,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 <body class="flex bg-gray-100 h-screen font-sans <?php echo $showFadeIn ? '' : 'fade-in'; ?>">
 
   <!-- Sidebar -->
-  <aside class="w-64 bg-gradient-to-b from-stone-950 to-blue-800 text-white flex flex-col h-screen">
+  <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
     <!-- Brand -->
     <div class="p-4 flex flex-col items-start space-y-2">
       <div class="flex flex-col">
@@ -251,7 +251,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
 
     <!-- Top Bar -->
-<div class="bg-gradient-to-r from-stone-950 to-blue-800 text-white shadow flex justify-between items-center px-6 py-3">
+<div class="bg-gradient-to-r from-stone-950 to-green-800 text-white shadow flex justify-between items-center px-6 py-3">
   <div class="flex items-center space-x-4">
 <!-- Add menu button in top bar -->
 <button id="menuBtn" class="md:hidden p-2 text-white bg-blue-950">
