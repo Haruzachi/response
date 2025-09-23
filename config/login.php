@@ -213,24 +213,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                         </span>
                     </a>
 
-                    <a href="#" onclick="openCallModal()" 
-                        class="flex items-center space-x-2 text-white font-medium transition duration-300 hover:text-red-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l3 7-2 2a11.042 11.042 0 005.586 5.586l2-2 7 3v2a2 2 0 01-2 2 19 19 0 01-16-16 2 2 0 012-2z" />
-                        </svg>
-                       <span class="relative group">
-                       E-Call
-                      <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-red-400 transition-all duration-300 group-hover:w-full"></span>
-                     </span>
-                    </a>
                 </div>
 
                 <div class="flex items-center space-x-3 md:hidden">
-                    <button onclick="openCallModal()" class="text-white focus:outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l3 7-2 2a11.042 11.042 0 005.586 5.586l2-2 7 3v2a2 2 0 01-2 2 19 19 0 01-16-16 2 2 0 012-2z" />
-                        </svg>
-                    </button>
 
                     <button onclick="toggleMenu()" class="focus:outline-none">
                         <svg class="w-7 h-7" fill="none" stroke="white" viewBox="0 0 24 24">
