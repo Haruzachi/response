@@ -252,21 +252,20 @@ if (!file_exists($image_path)) {
 
     <!-- ============================== NOTIFICATIONS ============================== -->
     <div class="relative">
-      <!-- Notification Button -->
-      <button id="notifBtn" class="relative p-2 bg-red-600 rounded-full hover:bg-red-700 transition duration-200">
-        <i class='bx bx-bell text-2xl'></i>
-        <!-- Notification Badge -->
-        <span id="notifBadge" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-xs font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
-      </button>
+  <!-- Notification Button -->
+  <button id="notifBtn" class="relative p-2 bg-red-600 rounded-full hover:bg-red-700 transition duration-200">
+    <i class='bx bx-bell text-2xl'></i>
+    <span id="notifBadge" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-xs font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+  </button>
 
-      <!-- Notification Dropdown Panel -->
-      <div id="notificationsPanel" class="hidden absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg z-50">
-        <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
-        <div id="notificationsList" class="p-2 space-y-2 max-h-96 overflow-y-auto">
-          <p class="text-gray-600 text-sm">No notifications yet.</p>
-        </div>
-      </div>
+  <!-- Notification Dropdown Panel -->
+  <div id="notificationsPanel" class="hidden absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg z-50">
+    <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
+    <div id="notificationsList" class="p-2 space-y-2 max-h-96 overflow-y-auto">
+      <p class="text-gray-600 text-sm">No notifications yet.</p>
     </div>
+  </div>
+</div>
 
     <!-- ============================== AI ASSISTANT ============================== -->
     <div class="relative">
@@ -335,37 +334,36 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Fetch incidents from backend
     function fetchIncidents() {
-      fetch('../../data/fetch_incidents.php')
-        .then(response => response.json())
-        .then(data => {
-          data.forEach(incident => {
-            if (!incident.latitude || !incident.longitude) return;
+  fetch('../data/fetch_incident.php')
+    .then(response => response.json())
+    .then(data => {
+      data.forEach(incident => {
+        if (!incident.latitude || !incident.longitude) return;
 
-            // If marker doesn't exist yet, create it
-            if (!markers[incident.id]) {
-              const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
-                .addTo(map)
-                .bindPopup(`
-                  <div class="text-sm">
-                    <strong>${incident.caller_name}</strong><br>
-                    <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
-                    <span class="text-gray-700">Location:</span> ${incident.location}<br>
-                    <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
-                  </div>
-                `);
+        // If marker doesn't exist yet, create it
+        if (!markers[incident.id]) {
+          const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
+            .addTo(map)
+            .bindPopup(`
+              <div class="text-sm">
+                <strong>${incident.caller_name}</strong><br>
+                <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
+                <span class="text-gray-700">Location:</span> ${incident.location}<br>
+                <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
+              </div>
+            `);
 
-              markers[incident.id] = marker;
+          markers[incident.id] = marker;
 
-              // Animate the marker for new incidents
-              marker._icon.classList.add("animate-bounce");
+          marker._icon.classList.add("animate-bounce");
 
-              // Show notification
-              showNotification(incident);
-            }
-          });
-        })
-        .catch(error => console.error("Error fetching incidents:", error));
-    }
+          // Show notification
+          showNotification(incident);
+        }
+      });
+    })
+    .catch(error => console.error("Error fetching incidents:", error));
+}
 
     // Fetch new incidents every 5 seconds
     setInterval(fetchIncidents, 5000);
@@ -382,26 +380,28 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Show notification item
     function showNotification(incident) {
-      const item = document.createElement('div');
-      item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
+  // Remove placeholder text if it's there
+  const placeholder = notificationsList.querySelector('p.text-gray-600');
+  if (placeholder) placeholder.remove();
 
-      item.innerHTML = `
-        <strong>${incident.incident_type}</strong> reported by ${incident.caller_name}<br>
-        <span class="text-xs text-gray-600">${incident.location}</span>
-      `;
+  const item = document.createElement('div');
+  item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
 
-      // Zoom to marker when clicked
-      item.addEventListener('click', () => {
-        if (markers[incident.id]) {
-          map.setView(markers[incident.id].getLatLng(), 15);
-          markers[incident.id].openPopup();
-          notificationsPanel.classList.add('hidden');
-        }
-      });
+  item.innerHTML = `
+    <strong>${incident.incident_type}</strong> reported by ${incident.caller_name}<br>
+    <span class="text-xs text-gray-600">${incident.location}</span>
+  `;
 
-      // Add newest notifications at the top
-      notificationsList.prepend(item);
+  item.addEventListener('click', () => {
+    if (markers[incident.id]) {
+      map.setView(markers[incident.id].getLatLng(), 15);
+      markers[incident.id].openPopup();
+      notificationsPanel.classList.add('hidden');
     }
+  });
+
+  notificationsList.prepend(item);
+}
   </script>
   </main>
   <!---============================== MODALS ==============================--->
