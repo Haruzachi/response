@@ -222,21 +222,22 @@ if (!file_exists($image_path)) {
   <main class="flex-1 flex flex-col overflow-auto">
 
 
-    <!---============================== TOP BAR ==============================--->
-<div class="bg-gradient-to-r from-stone-950 to-blue-800 text-white shadow flex justify-between items-center px-6 py-3">
+    <!-- ============================== TOP BAR ============================== -->
+<div class="bg-gradient-to-r from-stone-950 to-blue-800 text-white shadow flex justify-between items-center px-6 py-3 relative z-50">
   <div class="flex items-center space-x-4">
-   
-<button id="menuBtn" class="md:hidden p-2 text-white bg-blue-950 rounded">
-  <i class='bx bx-menu text-2xl'></i>
-</button>
-  
+    <!-- Mobile Menu Button -->
+    <button id="menuBtn" class="md:hidden p-2 text-white bg-blue-950 rounded">
+      <i class='bx bx-menu text-2xl'></i>
+    </button>
+
+    <!-- Page Title -->
     <h1 class="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-white flex-1 truncate">
       --// <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Dashboard'; ?> //--
     </h1>
   </div>
 
   <div class="flex items-center space-x-4">
-    <!---============================== SEARCH BAR ==============================--->
+    <!-- ============================== SEARCH BAR ============================== -->
     <form class="hidden md:flex">
       <input 
         type="search" 
@@ -249,25 +250,32 @@ if (!file_exists($image_path)) {
       </button>
     </form>
 
+    <!-- ============================== NOTIFICATIONS ============================== -->
+    <div class="relative">
+      <!-- Notification Button -->
+      <button id="notifBtn" class="relative p-2 bg-red-600 rounded-full hover:bg-red-700 transition duration-200">
+        <i class='bx bx-bell text-2xl'></i>
+        <!-- Notification Badge -->
+        <span id="notifBadge" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-xs font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+      </button>
 
-    <!-- Notifications Panel -->
-  <div id="notificationsPanel" class="fixed top-20 right-6 w-80 bg-white shadow-lg rounded-lg hidden z-50">
-    <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
-    <div id="notificationsList" class="p-2 space-y-2"></div>
-  </div>
+      <!-- Notification Dropdown Panel -->
+      <div id="notificationsPanel" class="hidden absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg z-50">
+        <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
+        <div id="notificationsList" class="p-2 space-y-2 max-h-96 overflow-y-auto">
+          <p class="text-gray-600 text-sm">No notifications yet.</p>
+        </div>
+      </div>
+    </div>
 
-  <!-- Notification Button -->
-  <button id="notifBtn" class="fixed top-16 right-6 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50">
-    <i class='bx bx-bell text-2xl'></i>
-  </button>
-    <!---============================== AI ASSISTANT ==============================--->
-<div class="relative">
-  <button id="ai-btn" class="relative">
-    <i class='bx bx-brain text-2xl'></i>
-  </button>
-</div>
+    <!-- ============================== AI ASSISTANT ============================== -->
+    <div class="relative">
+      <button id="ai-btn" class="relative">
+        <i class='bx bx-brain text-2xl'></i>
+      </button>
+    </div>
 
-   <!---============================== USER PROFILE ==============================--->
+    <!-- ============================== USER PROFILE ============================== -->
     <div class="relative">
       <img 
         src="../profile_images/<?php echo $profile_image; ?>?<?php echo time(); ?>" 
