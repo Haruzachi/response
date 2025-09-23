@@ -212,12 +212,12 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
 
         <li>
-          <button class="flex items-center w-full p-2 hover:bg-blue-800 rounded justify-between module-btn transition-colors duration-200" data-target="module7">
-            <span class="flex items-center"><i class='bx bx-chat text-xl'></i><span class="ml-2">Hazard Map</span></span>
+          <button class="flex items-center w-full p-2 hover:bg-blue-800 rounded justify-between module-btn transition-colors duration-200" data-target="module8">
+            <span class="flex items-center"><i class='bx bx-chat text-xl'></i><span class="ml-2">Hazard Mapping</span></span>
             <i class='bx bx-chevron-down transition-transform duration-300'></i>
           </button>
           <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module7">
-            <li><a href="./Sub7/feedback.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Feedback forms for responders</span></a></li>
+            <li><a href="./Sub8/Map.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
           </ul>
         </li>
 
