@@ -231,6 +231,17 @@ if (!file_exists($image_path)) {
 </button>
 
 
+<!-- Notifications Panel -->
+  <div id="notificationsPanel" class="fixed top-20 right-6 w-80 bg-white shadow-lg rounded-lg hidden z-50">
+    <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
+    <div id="notificationsList" class="p-2 space-y-2"></div>
+  </div>
+
+  <!-- Notification Button -->
+  <button id="notifBtn" class="fixed top-16 right-6 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50">
+    <i class='bx bx-bell text-2xl'></i>
+  </button>
+  
     <h1 class="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-white flex-1 truncate">
       --// <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Dashboard'; ?> //--
     </h1>
@@ -271,164 +282,119 @@ if (!file_exists($image_path)) {
 <!---============================== DASHBOARD ==============================--->
 
 <?php
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['location_name'], $_POST['caller_name'], $_POST['incident_type'])) {
-    $caller_name = trim($_POST['caller_name']);
-$incident_type = trim($_POST['incident_type']);
-$location_name = trim($_POST['location_name']);
-
-$location_name_encoded = urlencode($location_name);
-$api_url = "https://nominatim.openstreetmap.org/search?format=json&countrycodes=ph&limit=1&q=" . $location_name_encoded;
-
-$options = [
-    "http" => [
-        "header" => "User-Agent: EmergencyResponseSystem/1.0 (your-email@example.com)\r\n"
-    ]
-];
-$context = stream_context_create($options);
-$api_response = @file_get_contents($api_url, false, $context);
-$api_data = json_decode($api_response, true);
-
-if (!empty($api_data) && isset($api_data[0]['lat']) && isset($api_data[0]['lon'])) {
-    $latitude = $api_data[0]['lat'];
-    $longitude = $api_data[0]['lon'];
-
-    $stmt = $conn->prepare("
-        INSERT INTO emergency_calls (caller_name, incident_type, location, latitude, longitude, status)
-        VALUES (?, ?, ?, ?, ?, 'Pending')
-    ");
-    $stmt->execute([$caller_name, $incident_type, $location_name, $latitude, $longitude]);
-
-    $success_message = "Location '{$location_name}' saved successfully within the Philippines!";
-} else {
-    $error_message = "Location '{$location_name}' not found in the Philippines. Please try again.";
-} 
-}
-
-$query = $conn->prepare("
-    SELECT caller_name, incident_type, location AS location_name, latitude, longitude
-    FROM emergency_calls
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-");
-$query->execute();
-$locations = $query->fetchAll(PDO::FETCH_ASSOC);
+// Fetch user details
+$stmt = $conn->prepare("SELECT username, role, profile_image FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
-<script src="https://cdn.tailwindcss.com"></script>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <style>
+ <style>
+    /* Map should cover full screen */
     #map {
-    height: calc(105vh - 105px); /* same as your container div */
-    border-radius: 0.5rem;
-    z-index: 0;
-}
-.modal {
-    z-index: 50; /* your modal should be above the map */
-}
-@media (max-width: 768px) {
-  aside {
-    position: fixed;
-    top: 0;
-    left: -100%;
-    height: 100%;
-    width: 16rem; /* same as w-64 */
-    z-index: 100; /* ensure it’s above modal card */
-    transition: left 0.3s ease;
-  }
-  aside.active {
-    left: 0;
-  }
+      width: 100%;
+      height: 100vh;
+    }
 
-  #sidebarOverlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 90; /* below sidebar but above modal */
-  }
-  #sidebarOverlay.active {
-    display: block;
-  }
+    /* Notification styles */
+    #notificationsPanel {
+      max-height: 400px;
+      overflow-y: auto;
+    }
 
-  .modalcard {
-    z-index: 50; /* stays below sidebar */
-  }
-}
-
+    /* Bounce animation for new markers */
+    .animate-bounce {
+      animation: bounce 1.5s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
   </style>
 
-  <div class="relative w-full h-[calc(100vh-100px)]">
-  <!-- Full map -->
-  <div id="map" class="w-full h-full rounded-xl shadow-xl"></div>
+<!-- Map Container -->
+  <div id="map"></div>
 
-  <div class="modalcard">
-  <!-- Floating form card -->
-  <div class="absolute top-10 left-10 md:left-20 w-80 md:w-96 bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-2xl p-6 z-50">
-    <h2 class="text-xl font-bold mb-4 text-blue-800">Log New Incident</h2>
+   <script>
+    // Initialize the map
+    const map = L.map('map').setView([14.5995, 120.9842], 12); // Default center (Manila)
 
-    <!-- Success/Error Messages -->
-    <?php if (!empty($success_message)): ?>
-      <div class="bg-green-100 text-green-900 p-2 rounded mb-3"><?= htmlspecialchars($success_message) ?></div>
-    <?php elseif (!empty($error_message)): ?>
-      <div class="bg-red-100 text-red-900 p-2 rounded mb-3"><?= htmlspecialchars($error_message) ?></div>
-    <?php endif; ?>
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-    <!-- Form -->
-    <form method="POST" class="space-y-4">
-      <input type="text" name="caller_name" placeholder="Caller Name" required
-             class="border rounded p-2 w-full focus:ring-2 focus:ring-blue-500">
+    let markers = {}; // Store markers by incident ID
 
-      <select name="incident_type" required class="border rounded p-2 w-full focus:ring-2 focus:ring-blue-500">
-        <option value="">Select Incident Type</option>
-        <option value="Fire">Fire</option>
-        <option value="Crime">Crime</option>
-        <option value="Medical">Medical</option>
-        <option value="Accident">Accident</option>
-      </select>
+    // Fetch incidents from backend
+    function fetchIncidents() {
+      fetch('../../data/fetch_incidents.php')
+        .then(response => response.json())
+        .then(data => {
+          data.forEach(incident => {
+            if (!incident.latitude || !incident.longitude) return;
 
-      <input type="text" name="location_name" placeholder="Location" required
-             class="border rounded p-2 w-full focus:ring-2 focus:ring-blue-500">
+            // If marker doesn't exist yet, create it
+            if (!markers[incident.id]) {
+              const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
+                .addTo(map)
+                .bindPopup(`
+                  <div class="text-sm">
+                    <strong>${incident.caller_name}</strong><br>
+                    <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
+                    <span class="text-gray-700">Location:</span> ${incident.location}<br>
+                    <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
+                  </div>
+                `);
 
-      <button type="submit"
-              class="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white p-3 rounded-xl hover:from-blue-700 hover:to-blue-500">
-        Save Location
-      </button>
-    </form>
-  </div>
-</div>
+              markers[incident.id] = marker;
 
+              // Animate the marker for new incidents
+              marker._icon.classList.add("animate-bounce");
 
-<script>
- 
-  var map = L.map('map').setView([12.8797, 121.7740], 6);
+              // Show notification
+              showNotification(incident);
+            }
+          });
+        })
+        .catch(error => console.error("Error fetching incidents:", error));
+    }
 
-  
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+    // Fetch new incidents every 5 seconds
+    setInterval(fetchIncidents, 5000);
+    fetchIncidents(); // Initial load
 
+    // Notification panel logic
+    const notifBtn = document.getElementById('notifBtn');
+    const notificationsPanel = document.getElementById('notificationsPanel');
+    const notificationsList = document.getElementById('notificationsList');
 
-  var locations = <?php echo json_encode($locations); ?>;
+    notifBtn.addEventListener('click', () => {
+      notificationsPanel.classList.toggle('hidden');
+    });
 
+    // Show notification item
+    function showNotification(incident) {
+      const item = document.createElement('div');
+      item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
 
-  locations.forEach(function(loc) {
-    if (!loc.latitude || !loc.longitude) return;
+      item.innerHTML = `
+        <strong>${incident.incident_type}</strong> reported by ${incident.caller_name}<br>
+        <span class="text-xs text-gray-600">${incident.location}</span>
+      `;
 
-    L.marker([parseFloat(loc.latitude), parseFloat(loc.longitude)])
-      .addTo(map)
-      .bindPopup(`
-        <div class="text-sm">
-          <strong>${loc.caller_name}</strong><br>
-          <span class="text-gray-700">Type:</span> ${loc.incident_type}<br>
-          <span class="text-gray-700">Location:</span> ${loc.location_name}
-        </div>
-      `);
-  });
-</script>
+      // Zoom to marker when clicked
+      item.addEventListener('click', () => {
+        if (markers[incident.id]) {
+          map.setView(markers[incident.id].getLatLng(), 15);
+          markers[incident.id].openPopup();
+          notificationsPanel.classList.add('hidden');
+        }
+      });
 
+      // Add newest notifications at the top
+      notificationsList.prepend(item);
+    }
+  </script>
   </main>
   <!---============================== MODALS ==============================--->
   
