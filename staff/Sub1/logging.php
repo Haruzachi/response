@@ -298,8 +298,9 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
  <style>
     /* Map should cover full screen */
     #map {
-      width: 100%;
-      height: 100vh;
+    height: 911px;
+    border-radius: 0.5rem;
+    z-index: 0; /* ensures map stays behind modals */
     }
 
     /* Notification styles */
