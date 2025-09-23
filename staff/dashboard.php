@@ -216,7 +216,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
             <span class="flex items-center"><i class='bx bx-chat text-xl'></i><span class="ml-2">Hazard Mapping</span></span>
             <i class='bx bx-chevron-down transition-transform duration-300'></i>
           </button>
-          <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module7">
+          <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module8">
             <li><a href="./Sub8/Map.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
           </ul>
         </li>
