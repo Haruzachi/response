@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div id="dashboardWrapper" class="flex-1 flex flex-col">
 
   <!---============================== TOP BAR ==============================--->
-  <header class="w-full bg-gradient-to-b from-green-800 to-red-800 backdrop-blur-md shadow-md">
+  <header class="w-full bg-gradient-to-b from-green-800 to-stone-800 backdrop-blur-md shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-7 flex justify-between items-center">
 
       <div class="flex items-center space-x-3">

@@ -177,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
 </head>
 <body class="min-h-screen bg-stone-800 text-white flex flex-col">
     <div id="dashboardWrapper" class="flex-1 flex flex-col">
-        <header class="w-full bg-gradient-to-b from-green-800 to-red-800 backdrop-blur-md shadow-md">
+        <header class="w-full bg-gradient-to-b from-green-800 to-stone-800 backdrop-blur-md shadow-md">
             <div class="max-w-7xl mx-auto px-4 py-7 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <img src="../img/Logo.png" alt="My Logo" class="h-10 w-10 rounded-full">
