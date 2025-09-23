@@ -229,18 +229,6 @@ if (!file_exists($image_path)) {
 <button id="menuBtn" class="md:hidden p-2 text-white bg-blue-950 rounded">
   <i class='bx bx-menu text-2xl'></i>
 </button>
-
-
-<!-- Notifications Panel -->
-  <div id="notificationsPanel" class="fixed top-20 right-6 w-80 bg-white shadow-lg rounded-lg hidden z-50">
-    <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
-    <div id="notificationsList" class="p-2 space-y-2"></div>
-  </div>
-
-  <!-- Notification Button -->
-  <button id="notifBtn" class="fixed top-16 right-6 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50">
-    <i class='bx bx-bell text-2xl'></i>
-  </button>
   
     <h1 class="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-white flex-1 truncate">
       --// <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Dashboard'; ?> //--
@@ -261,6 +249,17 @@ if (!file_exists($image_path)) {
       </button>
     </form>
 
+
+    <!-- Notifications Panel -->
+  <div id="notificationsPanel" class="fixed top-20 right-6 w-80 bg-white shadow-lg rounded-lg hidden z-50">
+    <h3 class="bg-blue-800 text-white px-4 py-2 rounded-t-lg">Notifications</h3>
+    <div id="notificationsList" class="p-2 space-y-2"></div>
+  </div>
+
+  <!-- Notification Button -->
+  <button id="notifBtn" class="fixed top-16 right-6 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50">
+    <i class='bx bx-bell text-2xl'></i>
+  </button>
     <!---============================== AI ASSISTANT ==============================--->
 <div class="relative">
   <button id="ai-btn" class="relative">
