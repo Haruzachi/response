@@ -329,10 +329,11 @@ if (!file_exists($image_path)) {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  let markers = {}; // Store markers by incident ID
+  // Store markers so we don't add duplicates
+  let markers = {};
 
   // ===============================
-  // Fetch Notifications
+  // Notification Elements
   // ===============================
   const notifBtn = document.getElementById('notifBtn');
   const notificationsPanel = document.getElementById('notificationsPanel');
@@ -343,8 +344,11 @@ if (!file_exists($image_path)) {
     notificationsPanel.classList.toggle('hidden');
   });
 
+  // ===============================
+  // Fetch Notifications
+  // ===============================
   function fetchNotifications() {
-    fetch('../data/fetch_notifications.php')
+    fetch('../../data/fetch_notifications.php')
       .then(response => response.json())
       .then(data => {
         if (!data.success) {
@@ -363,7 +367,7 @@ if (!file_exists($image_path)) {
           return;
         }
 
-        // Display each incident in the notification panel
+        // Create list of notifications
         data.incidents.forEach(incident => {
           const item = document.createElement('div');
           item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
@@ -373,45 +377,47 @@ if (!file_exists($image_path)) {
             <span class="text-xs text-gray-600">${incident.location}</span>
           `;
 
-          // When clicked, zoom to the incident on the map
+          // When clicked → add marker to map and zoom to it
           item.addEventListener('click', () => {
-            focusOnIncident(incident);
+            addMarkerAndFocus(incident);
             notificationsPanel.classList.add('hidden');
           });
 
           notificationsList.appendChild(item);
-
-          // Add marker to the map if not already added
-          if (!markers[incident.id]) {
-            const marker = L.marker([
-              parseFloat(incident.latitude),
-              parseFloat(incident.longitude)
-            ])
-              .addTo(map)
-              .bindPopup(`
-                <div>
-                  <strong>${incident.caller_name}</strong><br>
-                  Type: ${incident.incident_type}<br>
-                  Location: ${incident.location}<br>
-                  Reported: ${incident.created_at}
-                </div>
-              `);
-
-            markers[incident.id] = marker;
-          }
         });
       })
       .catch(error => console.error("Error fetching notifications:", error));
   }
 
   // ===============================
-  // Focus on Incident
+  // Add Marker ONLY When Clicked
   // ===============================
-  function focusOnIncident(incident) {
-    if (markers[incident.id]) {
-      map.setView(markers[incident.id].getLatLng(), 15);
-      markers[incident.id].openPopup();
+  function addMarkerAndFocus(incident) {
+    const incidentId = incident.id;
+
+    // Check if marker already exists
+    if (!markers[incidentId]) {
+      // Add marker
+      const marker = L.marker([
+        parseFloat(incident.latitude),
+        parseFloat(incident.longitude)
+      ])
+      .addTo(map)
+      .bindPopup(`
+        <div>
+          <strong>${incident.caller_name}</strong><br>
+          Type: ${incident.incident_type}<br>
+          Location: ${incident.location}<br>
+          Reported: ${incident.created_at}
+        </div>
+      `);
+
+      markers[incidentId] = marker;
     }
+
+    // Focus on the marker
+    map.setView(markers[incidentId].getLatLng(), 15);
+    markers[incidentId].openPopup();
   }
 
   // Fetch notifications every 5 seconds
