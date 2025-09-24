@@ -335,6 +335,7 @@ try {
     ]);
     exit;
 }
+?>
 
  <style>
   /* Map full screen */
