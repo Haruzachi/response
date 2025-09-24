@@ -329,7 +329,7 @@ if (!file_exists($image_path)) {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Store markers so we don't add duplicates
+  // Store markers so no duplicate markers are added
   let markers = {};
 
   // ===============================
@@ -340,6 +340,7 @@ if (!file_exists($image_path)) {
   const notificationsList = document.getElementById('notificationsList');
   const notifBadge = document.getElementById('notifBadge');
 
+  // Toggle panel
   notifBtn.addEventListener('click', () => {
     notificationsPanel.classList.toggle('hidden');
   });
@@ -356,7 +357,8 @@ if (!file_exists($image_path)) {
           return;
         }
 
-        notificationsList.innerHTML = ''; // Clear old notifications
+        // Clear old notifications
+        notificationsList.innerHTML = '';
 
         // Update badge
         notifBadge.textContent = data.incidents.length;
@@ -367,7 +369,7 @@ if (!file_exists($image_path)) {
           return;
         }
 
-        // Create list of notifications
+        // Create notifications
         data.incidents.forEach(incident => {
           const item = document.createElement('div');
           item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
@@ -377,7 +379,7 @@ if (!file_exists($image_path)) {
             <span class="text-xs text-gray-600">${incident.location}</span>
           `;
 
-          // When clicked → add marker to map and zoom to it
+          // Only when clicked → add marker to map
           item.addEventListener('click', () => {
             addMarkerAndFocus(incident);
             notificationsPanel.classList.add('hidden');
@@ -390,34 +392,30 @@ if (!file_exists($image_path)) {
   }
 
   // ===============================
-  // Add Marker ONLY When Clicked
+  // Add Marker ONLY When Notification Clicked
   // ===============================
   function addMarkerAndFocus(incident) {
-    const incidentId = incident.id;
+    const id = incident.id;
 
     // Check if marker already exists
-    if (!markers[incidentId]) {
-      // Add marker
-      const marker = L.marker([
-        parseFloat(incident.latitude),
-        parseFloat(incident.longitude)
-      ])
-      .addTo(map)
-      .bindPopup(`
-        <div>
-          <strong>${incident.caller_name}</strong><br>
-          Type: ${incident.incident_type}<br>
-          Location: ${incident.location}<br>
-          Reported: ${incident.created_at}
-        </div>
-      `);
+    if (!markers[id]) {
+      const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
+        .addTo(map)
+        .bindPopup(`
+          <div>
+            <strong>${incident.caller_name}</strong><br>
+            Type: ${incident.incident_type}<br>
+            Location: ${incident.location}<br>
+            Reported: ${incident.created_at}
+          </div>
+        `);
 
-      markers[incidentId] = marker;
+      markers[id] = marker;
     }
 
-    // Focus on the marker
-    map.setView(markers[incidentId].getLatLng(), 15);
-    markers[incidentId].openPopup();
+    // Zoom in and open popup
+    map.setView(markers[id].getLatLng(), 15);
+    markers[id].openPopup();
   }
 
   // Fetch notifications every 5 seconds
