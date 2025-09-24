@@ -288,33 +288,30 @@ if (!file_exists($image_path)) {
 <!---============================== DASHBOARD ==============================--->
 
 <?php
-try {
-    $stmt = $conn->prepare("
-        SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
-        FROM emergency_calls
-        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-        ORDER BY created_at DESC
-    ");
-    $stmt->execute();
-    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
+    try {
+        $stmt = $conn->prepare("
+            SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
+            FROM emergency_calls
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+            ORDER BY created_at DESC
+        ");
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // =======================================
-    // 4. Return JSON response
-    // =======================================
-    echo json_encode([
-        "success"   => true,
-        "count"     => count($data),
-        "incidents" => $data
-    ], JSON_PRETTY_PRINT);
-    exit;
-
-} catch (Exception $e) {
-    // Catch and return error as JSON
-    echo json_encode([
-        "success" => false,
-        "error"   => $e->getMessage()
-    ]);
-    exit;
+        echo json_encode([
+            "success"   => true,
+            "count"     => count($data),
+            "incidents" => $data
+        ], JSON_PRETTY_PRINT);
+        exit; // stop here to prevent HTML output
+    } catch (Exception $e) {
+        echo json_encode([
+            "success" => false,
+            "error"   => $e->getMessage()
+        ]);
+        exit;
+    }
 }
 ?>
 
