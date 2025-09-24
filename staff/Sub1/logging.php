@@ -288,25 +288,6 @@ if (!file_exists($image_path)) {
 <!---============================== DASHBOARD ==============================--->
 
 <?php
-// =======================================
-// 1. Enable error reporting for debugging
-// =======================================
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// =======================================
-// 2. Include database connection
-// =======================================
-require_once __DIR__ . '/../../config/db.php';
-
-// =======================================
-// 3. Ensure JSON header is sent first
-// =======================================
-header('Content-Type: application/json');
-
-// =======================================
-// 4. Fetch incidents directly
-// =======================================
 try {
     $stmt = $conn->prepare("
         SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
@@ -318,7 +299,7 @@ try {
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // =======================================
-    // 5. Return JSON response
+    // 4. Return JSON response
     // =======================================
     echo json_encode([
         "success"   => true,
