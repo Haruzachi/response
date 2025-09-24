@@ -288,53 +288,70 @@ if (!file_exists($image_path)) {
 <!---============================== DASHBOARD ==============================--->
 
 <?php
-// ========================== FETCH INCIDENTS (API STYLE) ========================== //
-// This section runs only when JS requests data via AJAX
-if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
-    header('Content-Type: application/json');
-    try {
-        $stmt = $conn->prepare("
-            SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
-            FROM emergency_calls
-            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-            ORDER BY created_at DESC
-        ");
-        $stmt->execute();
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// ========================== BACKEND ========================== //
 
-        echo json_encode($data);
-    } catch (Exception $e) {
-        echo json_encode(["error" => $e->getMessage()]);
-    }
-    exit; // Stop further rendering
+// 1. Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// 2. Include database connection
+require_once __DIR__ . '/../../config/db.php';
+
+// 3. Always return JSON
+header('Content-Type: application/json');
+
+// 4. Fetch incidents directly
+try {
+    $stmt = $conn->prepare("
+        SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
+        FROM emergency_calls
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY created_at DESC
+    ");
+    $stmt->execute();
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Return results
+    echo json_encode([
+        "success" => true,
+        "count" => count($data),
+        "incidents" => $data
+    ]);
+    exit;
+} catch (Exception $e) {
+    echo json_encode([
+        "success" => false,
+        "error" => $e->getMessage()
+    ]);
+    exit;
 }
 ?>
 
  <style>
-    /* Map should cover full screen */
-    #map {
+  /* Map full screen */
+  #map {
     height: 911px;
     border-radius: 0.5rem;
-    z-index: 0; /* ensures map stays behind modals */
-    }
+    z-index: 0;
+  }
 
-    /* Notification styles */
-    #notificationsPanel {
-      max-height: 400px;
-      overflow-y: auto;
-    }
+  /* Notification panel */
+  #notificationsPanel {
+    max-height: 400px;
+    overflow-y: auto;
+  }
 
-    /* Bounce animation for new markers */
-    .animate-bounce {
-      animation: bounce 1.5s infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-  </style>
+  /* Bounce animation */
+  .animate-bounce {
+    animation: bounce 1.5s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>
 
-<!-- ========================== MAIN MAP ========================== -->
+<!-- ========================== MAP ========================== -->
 <div id="map"></div>
 
 <script>
@@ -344,36 +361,40 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  let markers = {}; // Store markers by incident ID
+  let markers = {};
 
-  // Fetch incidents directly from logging.php
+  // Fetch incidents from the same PHP file
   function fetchIncidents() {
-    fetch('?action=fetch_incidents')
+    fetch('logging.php') // <-- FIXED URL
       .then(response => response.json())
       .then(data => {
         console.log("Fetched data:", data); // Debugging
 
-        if (!Array.isArray(data) || data.length === 0) return;
+        if (!data.success || !Array.isArray(data.incidents)) {
+          console.warn("No incidents or error fetching incidents.");
+          return;
+        }
 
-        data.forEach(incident => {
+        data.incidents.forEach(incident => {
           if (!incident.latitude || !incident.longitude) return;
 
-          // If marker doesn't exist yet, create it
+          // If marker doesn't exist, create it
           if (!markers[incident.id]) {
-            const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
-              .addTo(map)
-              .bindPopup(`
-                <div class="text-sm">
-                  <strong>${incident.caller_name}</strong><br>
-                  <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
-                  <span class="text-gray-700">Location:</span> ${incident.location}<br>
-                  <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
-                </div>
-              `);
+            const marker = L.marker([
+              parseFloat(incident.latitude),
+              parseFloat(incident.longitude)
+            ])
+            .addTo(map)
+            .bindPopup(`
+              <div class="text-sm">
+                <strong>${incident.caller_name}</strong><br>
+                <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
+                <span class="text-gray-700">Location:</span> ${incident.location}<br>
+                <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
+              </div>
+            `);
 
             markers[incident.id] = marker;
-
-            // Bounce animation for new incident
             marker._icon.classList.add("animate-bounce");
 
             // Show notification
@@ -384,9 +405,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
       .catch(error => console.error("Error fetching incidents:", error));
   }
 
-  // Update every 5 seconds
+  // Run fetch every 5 seconds
   setInterval(fetchIncidents, 5000);
-  fetchIncidents(); // Initial load
+  fetchIncidents();
 
   // ========================== NOTIFICATIONS ========================== //
   const notifBtn = document.getElementById('notifBtn');
@@ -398,7 +419,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
     notificationsPanel.classList.toggle('hidden');
   });
 
-  // Show notification
   function showNotification(incident) {
     const item = document.createElement('div');
     item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
@@ -407,7 +427,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
       <span class="text-xs text-gray-600">${incident.location}</span>
     `;
 
-    // When clicked → zoom to marker
+    // Zoom to marker when clicked
     item.addEventListener('click', () => {
       if (markers[incident.id]) {
         map.setView(markers[incident.id].getLatLng(), 15);
@@ -418,7 +438,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
 
     notificationsList.prepend(item);
 
-    // Update badge
+    // Update badge count
     let currentCount = parseInt(notifBadge.textContent) || 0;
     notifBadge.textContent = currentCount + 1;
     notifBadge.classList.remove('hidden');
