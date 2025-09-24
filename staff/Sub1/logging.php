@@ -288,10 +288,26 @@ if (!file_exists($image_path)) {
 <!---============================== DASHBOARD ==============================--->
 
 <?php
-// Fetch user details
-$stmt = $conn->prepare("SELECT username, role, profile_image FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+// ========================== FETCH INCIDENTS (API STYLE) ========================== //
+// This section runs only when JS requests data via AJAX
+if (isset($_GET['action']) && $_GET['action'] === 'fetch_incidents') {
+    header('Content-Type: application/json');
+    try {
+        $stmt = $conn->prepare("
+            SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
+            FROM emergency_calls
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+            ORDER BY created_at DESC
+        ");
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode($data);
+    } catch (Exception $e) {
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+    exit; // Stop further rendering
+}
 ?>
 
  <style>
@@ -318,91 +334,96 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
     }
   </style>
 
-<!-- Map Container -->
-  <div id="map"></div>
+<!-- ========================== MAIN MAP ========================== -->
+<div id="map"></div>
 
-   <script>
-    // Initialize the map
-    const map = L.map('map').setView([14.5995, 120.9842], 12); // Default center (Manila)
+<script>
+  // Initialize map
+  const map = L.map('map').setView([14.5995, 120.9842], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+  let markers = {}; // Store markers by incident ID
 
-    let markers = {}; // Store markers by incident ID
+  // Fetch incidents directly from logging.php
+  function fetchIncidents() {
+    fetch('?action=fetch_incidents')
+      .then(response => response.json())
+      .then(data => {
+        console.log("Fetched data:", data); // Debugging
 
-    // Fetch incidents from backend
-    function fetchIncidents() {
-  fetch('../data/fetch_incident.php')
-    .then(response => response.json())
-    .then(data => {
-      data.forEach(incident => {
-        if (!incident.latitude || !incident.longitude) return;
+        if (!Array.isArray(data) || data.length === 0) return;
 
-        // If marker doesn't exist yet, create it
-        if (!markers[incident.id]) {
-          const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
-            .addTo(map)
-            .bindPopup(`
-              <div class="text-sm">
-                <strong>${incident.caller_name}</strong><br>
-                <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
-                <span class="text-gray-700">Location:</span> ${incident.location}<br>
-                <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
-              </div>
-            `);
+        data.forEach(incident => {
+          if (!incident.latitude || !incident.longitude) return;
 
-          markers[incident.id] = marker;
+          // If marker doesn't exist yet, create it
+          if (!markers[incident.id]) {
+            const marker = L.marker([parseFloat(incident.latitude), parseFloat(incident.longitude)])
+              .addTo(map)
+              .bindPopup(`
+                <div class="text-sm">
+                  <strong>${incident.caller_name}</strong><br>
+                  <span class="text-gray-700">Type:</span> ${incident.incident_type}<br>
+                  <span class="text-gray-700">Location:</span> ${incident.location}<br>
+                  <span class="text-xs text-gray-500">Reported: ${incident.created_at}</span>
+                </div>
+              `);
 
-          marker._icon.classList.add("animate-bounce");
+            markers[incident.id] = marker;
 
-          // Show notification
-          showNotification(incident);
-        }
-      });
-    })
-    .catch(error => console.error("Error fetching incidents:", error));
-}
+            // Bounce animation for new incident
+            marker._icon.classList.add("animate-bounce");
 
-    // Fetch new incidents every 5 seconds
-    setInterval(fetchIncidents, 5000);
-    fetchIncidents(); // Initial load
+            // Show notification
+            showNotification(incident);
+          }
+        });
+      })
+      .catch(error => console.error("Error fetching incidents:", error));
+  }
 
-    // Notification panel logic
-    const notifBtn = document.getElementById('notifBtn');
-    const notificationsPanel = document.getElementById('notificationsPanel');
-    const notificationsList = document.getElementById('notificationsList');
+  // Update every 5 seconds
+  setInterval(fetchIncidents, 5000);
+  fetchIncidents(); // Initial load
 
-    notifBtn.addEventListener('click', () => {
-      notificationsPanel.classList.toggle('hidden');
-    });
+  // ========================== NOTIFICATIONS ========================== //
+  const notifBtn = document.getElementById('notifBtn');
+  const notificationsPanel = document.getElementById('notificationsPanel');
+  const notificationsList = document.getElementById('notificationsList');
+  const notifBadge = document.getElementById('notifBadge');
 
-    // Show notification item
-    function showNotification(incident) {
-  // Remove placeholder text if it's there
-  const placeholder = notificationsList.querySelector('p.text-gray-600');
-  if (placeholder) placeholder.remove();
-
-  const item = document.createElement('div');
-  item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
-
-  item.innerHTML = `
-    <strong>${incident.incident_type}</strong> reported by ${incident.caller_name}<br>
-    <span class="text-xs text-gray-600">${incident.location}</span>
-  `;
-
-  item.addEventListener('click', () => {
-    if (markers[incident.id]) {
-      map.setView(markers[incident.id].getLatLng(), 15);
-      markers[incident.id].openPopup();
-      notificationsPanel.classList.add('hidden');
-    }
+  notifBtn.addEventListener('click', () => {
+    notificationsPanel.classList.toggle('hidden');
   });
 
-  notificationsList.prepend(item);
-}
-  </script>
+  // Show notification
+  function showNotification(incident) {
+    const item = document.createElement('div');
+    item.className = "p-3 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 shadow";
+    item.innerHTML = `
+      <strong>${incident.incident_type}</strong> reported by ${incident.caller_name}<br>
+      <span class="text-xs text-gray-600">${incident.location}</span>
+    `;
+
+    // When clicked → zoom to marker
+    item.addEventListener('click', () => {
+      if (markers[incident.id]) {
+        map.setView(markers[incident.id].getLatLng(), 15);
+        markers[incident.id].openPopup();
+        notificationsPanel.classList.add('hidden');
+      }
+    });
+
+    notificationsList.prepend(item);
+
+    // Update badge
+    let currentCount = parseInt(notifBadge.textContent) || 0;
+    notifBadge.textContent = currentCount + 1;
+    notifBadge.classList.remove('hidden');
+  }
+</script>
   </main>
   <!---============================== MODALS ==============================--->
   
