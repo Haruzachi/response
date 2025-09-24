@@ -267,7 +267,7 @@ if (!file_exists($image_path)) {
     </div>
   </div>
 </div>
-
+    </div>
     <!-- ============================== AI ASSISTANT ============================== -->
     <div class="relative">
       <button id="ai-btn" class="relative">
