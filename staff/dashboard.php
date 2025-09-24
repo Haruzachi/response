@@ -213,7 +213,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
         <li>
           <button class="flex items-center w-full p-2 hover:bg-blue-800 rounded justify-between module-btn transition-colors duration-200" data-target="module8">
-            <span class="flex items-center"><i class='bx bx-chat text-xl'></i><span class="ml-2">Hazard Mapping</span></span>
+            <span class="flex items-center"><i class='bx bx-map text-xl'></i><span class="ml-2">Hazard Mapping</span></span>
             <i class='bx bx-chevron-down transition-transform duration-300'></i>
           </button>
           <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module8">
