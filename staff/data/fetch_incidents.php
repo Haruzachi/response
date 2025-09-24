@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../../config/db.php';
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 try {
     // Fetch only incidents that have coordinates
     $stmt = $conn->prepare("
