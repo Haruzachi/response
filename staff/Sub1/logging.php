@@ -73,7 +73,7 @@ if (!file_exists($image_path)) {
 <body class="flex bg-gray-100 h-screen font-sans">
 
   <!---============================== SIDE BAR ==============================--->
-  <aside class="w-64 bg-gradient-to-b from-stone-950 to-blue-800 text-white flex flex-col h-screen">
+  <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
     
     <div class="p-4 flex flex-col items-start space-y-2">
       <div class="flex flex-col">
@@ -223,7 +223,7 @@ if (!file_exists($image_path)) {
 
 
     <!-- ============================== TOP BAR ============================== -->
-<div class="bg-gradient-to-r from-stone-950 to-blue-800 text-white shadow flex justify-between items-center px-6 py-3 relative z-50">
+<div class="bg-gradient-to-r from-stone-950 to-green-800 text-white shadow flex justify-between items-center px-6 py-3 relative z-50">
   <div class="flex items-center space-x-4">
     <!-- Mobile Menu Button -->
     <button id="menuBtn" class="md:hidden p-2 text-white bg-blue-950 rounded">
