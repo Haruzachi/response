@@ -288,19 +288,25 @@ if (!file_exists($image_path)) {
 <!---============================== DASHBOARD ==============================--->
 
 <?php
-// ========================== BACKEND ========================== //
-
+// =======================================
 // 1. Enable error reporting for debugging
+// =======================================
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// =======================================
 // 2. Include database connection
+// =======================================
 require_once __DIR__ . '/../../config/db.php';
 
-// 3. Always return JSON
+// =======================================
+// 3. Ensure JSON header is sent first
+// =======================================
 header('Content-Type: application/json');
 
+// =======================================
 // 4. Fetch incidents directly
+// =======================================
 try {
     $stmt = $conn->prepare("
         SELECT id, caller_name, incident_type, location, latitude, longitude, status, created_at
@@ -311,21 +317,24 @@ try {
     $stmt->execute();
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Return results
+    // =======================================
+    // 5. Return JSON response
+    // =======================================
     echo json_encode([
-        "success" => true,
-        "count" => count($data),
+        "success"   => true,
+        "count"     => count($data),
         "incidents" => $data
-    ]);
+    ], JSON_PRETTY_PRINT);
     exit;
+
 } catch (Exception $e) {
+    // Catch and return error as JSON
     echo json_encode([
         "success" => false,
-        "error" => $e->getMessage()
+        "error"   => $e->getMessage()
     ]);
     exit;
 }
-?>
 
  <style>
   /* Map full screen */
