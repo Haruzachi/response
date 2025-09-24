@@ -94,7 +94,7 @@ $resources = $conn->query("SELECT * FROM resources WHERE status='Available'")->f
 <body class="flex bg-gray-100 h-screen font-sans">
 
   <!---============================== SIDE BAR ==============================--->
-  <aside class="w-64 bg-gradient-to-b from-stone-950 to-blue-800 text-white flex flex-col h-screen">
+  <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
     <!-- Brand -->
     <div class="p-4 flex flex-col items-start space-y-2">
       <div class="flex flex-col">
@@ -214,6 +214,17 @@ $resources = $conn->query("SELECT * FROM resources WHERE status='Available'")->f
             <li><a href="../Sub7/feedback.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Feedback forms for responders</span></a></li>
           </ul>
         </li>
+
+        <li>
+          <button class="flex items-center w-full p-2 hover:bg-blue-800 rounded justify-between module-btn transition-colors duration-200" data-target="module8">
+            <span class="flex items-center"><i class='bx bx-map-alt text-xl'></i><span class="ml-2">Hazard Mapping</span></span>
+            <i class='bx bx-chevron-down transition-transform duration-300'></i>
+          </button>
+          <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module8">
+            <li><a href="./Sub8/Map.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
+          </ul>
+        </li>
+        
       </ul>
     </nav>
 
@@ -244,7 +255,7 @@ $resources = $conn->query("SELECT * FROM resources WHERE status='Available'")->f
 
 
     <!---============================== TOP BAR ==============================--->
-<div class="bg-gradient-to-r from-stone-950 to-blue-800 text-white shadow flex justify-between items-center px-6 py-3">
+<div class="bg-gradient-to-r from-stone-950 to-green-800 text-white shadow flex justify-between items-center px-6 py-3">
   <div class="flex items-center space-x-4">
     <!-- Add menu button in top bar -->
 <button id="menuBtn" class="md:hidden p-2 text-white bg-blue-950 rounded">
