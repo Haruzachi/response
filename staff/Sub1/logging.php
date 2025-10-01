@@ -265,7 +265,7 @@ if (!file_exists($image_path)) {
     <div class="relative">
   <!-- Notification Button -->
 <div class="relative">
-  <button id="notifBtn" class="relative p-2 bg-red-600 rounded-full hover:bg-red-700 transition duration-200">
+  <button id="notifBtn" class="relative p-2 bg-white-600 rounded-full hover:bg-red-700 transition duration-200">
     <i class='bx bx-bell text-2xl'></i>
     <span id="notifBadge" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-xs font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
   </button>
