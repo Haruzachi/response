@@ -121,14 +121,14 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-user text-xl'></i>
+            <i class='bx bx-phone-ring text-xl'></i>
             <span class="ml-2">Receiving & Logging</span>
           </a>
         </li>
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-user text-xl'></i>
+            <i class='bx bx-ambulance text-xl'></i>
             <span class="ml-2">Incident Prioritization</span>
           </a>
         </li>
@@ -142,7 +142,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-user text-xl'></i>
+            <i class='bx bx-compass text-xl'></i>
             <span class="ml-2">Tracking of Responders</span>
           </a>
         </li>
@@ -156,14 +156,14 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-user text-xl'></i>
+            <i class='bx bx-highlights text-xl'></i>
             <span class="ml-2">Coordination Portal</span>
           </a>
         </li>
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-user text-xl'></i>
+            <i class='bx bx-message-circle text-xl'></i>
             <span class="ml-2">Review & Feedback</span>
           </a>
         </li>
