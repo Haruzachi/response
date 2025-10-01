@@ -3,7 +3,7 @@ require_once "../config/db.php";
 session_start();
 
 //______________________________________________//
-// CREATE DEFAULT ADMIN AND STAFF ACCOUNTS
+// CREATE DEFAULT ADMIN, STAFF and SupAd ACCOUNTS
 //______________________________________________//
 try {
     // Create default admin if not exists
@@ -20,6 +20,14 @@ try {
     if ($checkStaff->fetchColumn() == 0) {
         $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
         $insertStaff->execute(['staff', '123', 'staff']); // default staff account
+    }
+
+    // Create default SupAd if not exists
+    $checkSupAd = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'supad'");
+    $checkSupAd->execute();
+    if ($checkSupAd->fetchColumn() == 0) {
+        $insertSupAd = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+        $insertSupAd->execute(['supad', '123', 'supad']); // default supad account
     }
 } catch (PDOException $e) {
     die("Error creating default accounts: " . $e->getMessage());
@@ -95,6 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) 
                         break;
                     case 'staff':
                         header("Location: ../data/loadingstaff.php");
+                        break;
+                    case 'supad':
+                        header("Location: ../data/loadingsupad.php");
                         break;
                     default:
                         header("Location: ../data/loadinguser.php");
