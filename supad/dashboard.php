@@ -51,7 +51,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
   <meta charset="UTF-8">
   <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LGU4 Dashboard - Admin</title>
+  <title>LGU4 Dashboard - SuperAdmin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
@@ -120,25 +120,25 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
         <li>
           <a href="manage.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-user text-xl'></i>
-            <span class="ml-2">Manage Users</span>
+            <span class="ml-2">-----</span>
           </a>
         </li>
         <li>
           <a href="manage_resources.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-car text-xl'></i>
-            <span class="ml-2">Manage Resources</span>
+            <span class="ml-2">-----</span>
           </a>
         </li>
         <li>
           <a href="view_reports.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-bar-chart text-xl'></i>
-            <span class="ml-2">Reports</span>
+            <span class="ml-2">-----</span>
           </a>
         </li>
         <li>
           <a href="settings.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-cog text-xl'></i>
-            <span class="ml-2">Settings</span>
+            <span class="ml-2">-----</span>
           </a>
         </li>
       </ul>
@@ -156,40 +156,9 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
   <!---============================== Main Content ==============================--->
   <main class="flex-1 p-6 overflow-y-auto">
     
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">Admin Dashboard</h1>
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">SuperAdmin Dashboard</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-      <!---============================== Total Users ==============================--->
-      <div class="bg-white p-4 shadow rounded-lg">
-        <h2 class="text-gray-600 text-sm">Total Users</h2>
-        <?php
-          $stmt = $conn->query("SELECT COUNT(*) FROM users");
-          $total_users = $stmt->fetchColumn();
-        ?>
-        <p class="text-2xl font-bold"><?= $total_users ?></p>
-      </div>
-
-      <!---============================== Total Emergency Calls ==============================--->
-      <div class="bg-white p-4 shadow rounded-lg">
-        <h2 class="text-gray-600 text-sm">Total Emergency Calls</h2>
-        <?php
-          $stmt = $conn->query("SELECT COUNT(*) FROM emergency_calls");
-          $total_calls = $stmt->fetchColumn();
-        ?>
-        <p class="text-2xl font-bold"><?= $total_calls ?></p>
-      </div>
-
-      <!---============================== Total Resources ==============================--->
-      <div class="bg-white p-4 shadow rounded-lg">
-        <h2 class="text-gray-600 text-sm">Total Resources</h2>
-        <?php
-          $stmt = $conn->query("SELECT COUNT(*) FROM resources");
-          $total_resources = $stmt->fetchColumn();
-        ?>
-        <p class="text-2xl font-bold"><?= $total_resources ?></p>
-      </div>
-    </div>
+    
   </main>
 
   <script>

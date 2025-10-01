@@ -111,30 +111,70 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
     <nav class="flex-1 px-2 overflow-y-auto">
       <p class="mt-2 text-gray-300 uppercase text-xs px-2">Management</p>
       <ul class="space-y-1 mt-1">
+
         <li>
           <a href="dashboard.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bxs-dashboard text-xl'></i>
             <span class="ml-2">Dashboard</span>
           </a>
         </li>
+
         <li>
-          <a href="manage.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-user text-xl'></i>
-            <span class="ml-2">Manage Users</span>
+            <span class="ml-2">Receiving & Logging</span>
           </a>
         </li>
+
+        <li>
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-user text-xl'></i>
+            <span class="ml-2">Incident Prioritization</span>
+          </a>
+        </li>
+
         <li>
           <a href="manage_resources.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-car text-xl'></i>
             <span class="ml-2">Manage Resources</span>
           </a>
         </li>
+
+        <li>
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-user text-xl'></i>
+            <span class="ml-2">Tracking of Responders</span>
+          </a>
+        </li>
+
         <li>
           <a href="view_reports.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-bar-chart text-xl'></i>
             <span class="ml-2">Reports</span>
           </a>
         </li>
+
+        <li>
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-user text-xl'></i>
+            <span class="ml-2">Coordination Portal</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-user text-xl'></i>
+            <span class="ml-2">Review & Feedback</span>
+          </a>
+        </li>
+        
+        <li>
+          <a href="manage.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-user text-xl'></i>
+            <span class="ml-2">Manage Users</span>
+          </a>
+        </li>
+
         <li>
           <a href="settings.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-cog text-xl'></i>
