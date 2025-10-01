@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
 </header>
 
   <!---============================== SIDE BAR ==============================--->
-  <aside class="w-64 bg-gradient-to-b from-stone-950 to-red-800 text-white flex flex-col h-screen">
+  <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
     <div class="p-4 flex flex-col items-start space-y-2">
       <div class="flex items-center space-x-3">
         <img src="../img/Logo.png" alt="Logo" class="w-10 h-10 rounded-full">
@@ -144,36 +144,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
       <div class="w-full border-b border-white/50 mt-2"></div>
     </div>
 
-    <!---============================== NAVIGATION ==============================--->
+    <!---============================== Navigation ==============================--->
     <nav class="flex-1 px-2 overflow-y-auto">
       <p class="mt-2 text-gray-300 uppercase text-xs px-2">Management</p>
       <ul class="space-y-1 mt-1">
+
         <li>
-          <a href="dashboard.php" class="flex items-center p-2 hover:bg-red-800 rounded">
+          <a href="dashboard.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bxs-dashboard text-xl'></i>
             <span class="ml-2">Dashboard</span>
           </a>
         </li>
+
         <li>
-          <a href="manage.php" class="flex items-center p-2 hover:bg-red-800 rounded">
-            <i class='bx bx-user text-xl'></i>
-            <span class="ml-2">Manage Users</span>
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-phone-ring text-xl'></i>
+            <span class="ml-2">Receiving & Logging</span>
           </a>
         </li>
+
         <li>
-          <a href="manage_resources.php" class="flex items-center p-2 hover:bg-red-800 rounded">
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-ambulance text-xl'></i>
+            <span class="ml-2">Incident Prioritization</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="manage_resources.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-car text-xl'></i>
             <span class="ml-2">Manage Resources</span>
           </a>
         </li>
+
         <li>
-          <a href="view_reports.php" class="flex items-center p-2 hover:bg-red-800 rounded">
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-compass text-xl'></i>
+            <span class="ml-2">Tracking of Responders</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="view_reports.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-bar-chart text-xl'></i>
             <span class="ml-2">Reports</span>
           </a>
         </li>
+
         <li>
-          <a href="settings.php" class="flex items-center p-2 bg-red-700 rounded">
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-highlights text-xl'></i>
+            <span class="ml-2">Coordination Portal</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-message-circle text-xl'></i>
+            <span class="ml-2">Review & Feedback</span>
+          </a>
+        </li>
+        
+        <li>
+          <a href="manage.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
+            <i class='bx bx-user text-xl'></i>
+            <span class="ml-2">Manage Users</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="settings.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
             <i class='bx bx-cog text-xl'></i>
             <span class="ml-2">Settings</span>
           </a>
@@ -181,9 +221,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
       </ul>
     </nav>
 
-    <!---============================== LOG OUT ==============================--->
-    <div class="p-4 border-t border-red-800">
-      <a href="../config/logout.php" class="flex items-center p-2 hover:bg-red-800 rounded">
+    <!---============================== Logout ==============================--->
+    <div class="p-4 border-t border-green-800">
+      <a href="../config/logout.php" class="flex items-center p-2 hover:bg-blue-800 rounded">
         <i class='bx bx-log-out text-xl'></i>
         <span class="ml-2">Logout</span>
       </a>
