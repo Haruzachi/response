@@ -95,7 +95,7 @@ if (!file_exists(__DIR__ . "/profile_images/" . $profile_image)) {
 
 </header>
   <!---============================== SIDE BAR ==============================--->
-  <aside class="w-64 bg-gradient-to-b from-stone-950 to-red-800 text-white flex flex-col h-screen">
+  <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
     <div class="p-4 flex flex-col items-start space-y-2">
       <div class="flex items-center space-x-3">
         <img src="../img/Logo.png" alt="Logo" class="w-10 h-10 rounded-full">
