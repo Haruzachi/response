@@ -241,7 +241,7 @@ function getSeverityBadge($severity) {
     </nav>
 
     <!-- Settings at Bottom -->
-    <div class="p-4 border-t border-blue-800">
+    <div class="p-4 border-t border-green-800">
       <ul class="space-y-1">
         <li>
           <a href="Profile.html" class="flex items-center p-2 hover:bg-blue-800 rounded">
