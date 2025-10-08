@@ -10,6 +10,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
     header("Location: dashboard.php");
     exit;
 }
+
+// Handle report submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $location = $_POST['location'] ?? '';
+    $latitude = $_POST['latitude'] ?? '';
+    $longitude = $_POST['longitude'] ?? '';
+    $description = $_POST['description'] ?? '';
+    $photo = '';
+
+    if (!empty($_FILES['photo']['name'])) {
+        $targetDir = "uploads/";
+        if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+        $photoName = time() . "_" . basename($_FILES["photo"]["name"]);
+        $targetFile = $targetDir . $photoName;
+        if (move_uploaded_file($_FILES["photo"]["tmp_name"], $targetFile)) {
+            $photo = $photoName;
+        }
+    }
+
+    $stmt = $conn->prepare("INSERT INTO hazard_reports (location, latitude, longitude, description, photo) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$location, $latitude, $longitude, $description, $photo]);
+
+    header("Location: map.php?location=" . urlencode($location));
+    exit;
+}
+
+$stmt = $conn->query("SELECT * FROM hazard_reports ORDER BY created_at DESC");
+$reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
@@ -162,70 +190,51 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <main class="flex-1 pt-24">
 <form id="home" class="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
   
-    <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-    }
+<style>
+  .form-card {
+    position: absolute;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 999;
+    width: 90%;
+    max-width: 500px;
+  }
+</style>
 
-    #map-bg {
-      position: fixed;
-      top: 0; left: 0;
-      height: 100%; width: 100%;
-      z-index: 0;
-      filter: brightness(80%) blur(1px);
-    }
+  <!-- Background Animated Circles -->
+  <div class="absolute inset-0">
+    <!-- Large glowing circle -->
+    <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+    
+    <!-- Medium glowing circle -->
+    <div class="absolute bottom-20 right-16 w-60 h-60 bg-orange-500/20 rounded-full blur-2xl animate-pulse delay-150"></div>
 
-    .overlay-card {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      color: #333;
-      border-radius: 1rem;
-      padding: 2rem;
-      width: 90%;
-      max-width: 500px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      z-index: 1000;
-    }
-  </style>
-
-
-  <!-- Overlay Card -->
-  <div class="overlay-card">
-    <h1 class="text-3xl font-bold mb-2 text-gray-800">Know Your Hazards</h1>
-    <p class="text-gray-600 mb-4">
-      Assess how likely you are to be affected by floods, landslides, or storm surges and what you can do about it.
-    </p>
-
-    <form action="map.php" method="GET">
-      <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden mb-4">
-        <input type="text" name="location" placeholder="Search Location" required
-               class="flex-1 px-3 py-2 outline-none text-gray-700">
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
-          🔍
-        </button>
-      </div>
-    </form>
-
-    <h3 class="font-semibold text-gray-700 mb-2">Check Weather Updates</h3>
-    <p class="text-sm text-red-500 mb-2">Both are still in BETA</p>
-
-    <div class="flex justify-center gap-4 mb-3">
-      <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-        🌧️ Rainfall
-      </button>
-      <button class="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition">
-        🌀 Typhoon Track
-      </button>
-    </div>
-
-    <p class="text-gray-500 text-sm">More hazard insights coming soon!</p>
+    <!-- Small glowing circle -->
+    <div class="absolute top-40 right-32 w-40 h-40 bg-blue-400/10 rounded-full blur-xl animate-pulse delay-300"></div>
   </div>
 
+  <!-- Background Pattern Dots -->
+  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[length:40px_40px]"></div>
+
+  <!-- Hazard Report Form -->
+<div class="form-card">
+  <h2 class="text-2xl font-bold mb-2 text-gray-800">Submit Hazard Observation</h2>
+  <p class="text-gray-600 mb-4">You searched: <strong><?= $searchedLocation ?></strong></p>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-3">
+    <input type="text" name="location" value="<?= $searchedLocation ?>" class="w-full p-2 border border-gray-300 rounded">
+    <textarea name="description" placeholder="Describe the situation..." class="w-full p-2 border border-gray-300 rounded"></textarea>
+    <input type="file" name="photo" accept="image/*" class="w-full text-sm text-gray-500">
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Submit Report</button>
+  </form>
+  <button id="locateBtn" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">Use My Current Location</button>
+</div>
   </form>
  
  <!---============================== USER FEEDBACK SECTION ==============================--->
