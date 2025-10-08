@@ -303,21 +303,91 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-<div id="map" style="height: 80vh;"></div>
-<script>
-  var map = L.map('map').setView([12.8797, 121.7740], 6);
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #map { height: 100vh; width: 100%; }
+    .legend {
+      background: white;
+      padding: 10px;
+      line-height: 18px;
+      color: #333;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-  }).addTo(map);
+  <div id="map"></div>
 
-  // Sample working WMS (use this to test your Leaflet setup)
-  L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
-    layers: 'topp:states',
-    format: 'image/png',
-    transparent: true
-  }).addTo(map);
-</script>
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([12.8797, 121.7740], 6); // Philippines center
+
+    // Base layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: 'Map data © OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Sample hazard data (no API needed)
+    var hazards = [
+      {
+        name: "Flood-Prone Area - Manila",
+        type: "Flood",
+        coords: [14.5995, 120.9842],
+        color: "blue"
+      },
+      {
+        name: "Landslide-Prone Area - Benguet",
+        type: "Landslide",
+        coords: [16.3993, 120.5976],
+        color: "brown"
+      },
+      {
+        name: "Storm Surge Risk - Tacloban",
+        type: "Storm Surge",
+        coords: [11.2445, 125.0036],
+        color: "red"
+      }
+    ];
+
+    // Add hazard markers
+    hazards.forEach(function(hazard) {
+      var marker = L.circleMarker(hazard.coords, {
+        radius: 10,
+        fillColor: hazard.color,
+        color: "#fff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).addTo(map);
+
+      marker.bindPopup("<b>" + hazard.name + "</b><br>Type: " + hazard.type);
+    });
+
+    // Add a legend
+    var legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function (map) {
+      var div = L.DomUtil.create("div", "legend");
+      div.innerHTML += "<h4>Hazard Types</h4>";
+      div.innerHTML += '<i style="background: blue"></i> Flood-Prone<br>';
+      div.innerHTML += '<i style="background: brown"></i> Landslide-Prone<br>';
+      div.innerHTML += '<i style="background: red"></i> Storm Surge Risk<br>';
+      return div;
+    };
+
+    legend.addTo(map);
+  </script>
 
 
   </main>
