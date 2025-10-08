@@ -302,7 +302,8 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!---============================== DASHBOARD ==============================--->
-
+ <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+ 
   <section id="hazard-report" class="py-16 bg-stone-900 text-center">
   <h2 class="text-3xl font-bold mb-6 text-white">Submit Hazard Observation</h2>
   <p class="text-gray-300 mb-8 max-w-xl mx-auto">
