@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../config/db.php';
 session_start();
 
-$pageTitle = "Feedback Forms for Responders";
+$pageTitle = "Hazard Mapping";
 
 if (!isset($_SESSION['user']['id'])) {
     header("Location: ../index.php");
