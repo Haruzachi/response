@@ -314,9 +314,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
     #map {
       height: 100%;
       width: 100%;
-      transform: perspective(800px) rotateX(25deg);
       transform-origin: center bottom;
-      border-radius: 10px;
       box-shadow: 0 0 40px rgba(0,0,0,0.6);
     }
     .legend {
