@@ -309,7 +309,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
     height: 100%;
     margin: 0;
     background: #000;
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
   #map {
     height: 100%;
@@ -317,16 +317,19 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
     transform-origin: center bottom;
     box-shadow: 0 0 30px rgba(0,0,0,0.6);
   }
+
+  /* Legend Style */
   .legend {
     position: absolute;
     bottom: 20px;
     left: 20px;
     background: rgba(255, 255, 255, 0.9);
     padding: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     line-height: 18px;
     color: #333;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
   }
   .legend i {
     width: 18px;
@@ -335,26 +338,70 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
     margin-right: 8px;
     opacity: 0.8;
   }
+
+  /* Popup Form Styling */
+  .popup-form {
+    font-size: 13px;
+  }
   .popup-form input,
   .popup-form select,
   .popup-form textarea {
     width: 100%;
     margin: 5px 0;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #bbb;
     font-size: 13px;
+    transition: border-color 0.3s ease;
   }
+  .popup-form input:focus,
+  .popup-form select:focus,
+  .popup-form textarea:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+
+  /* Buttons Container */
+  .popup-buttons {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  /* Button Base Style */
   .popup-buttons button {
-    margin: 4px 3px 0 0;
-    padding: 6px 10px;
     border: none;
-    border-radius: 4px;
-    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     cursor: pointer;
+    transition: all 0.25s ease-in-out;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   }
-  .btn-submit { background: #007bff; }
-  .btn-delete { background: #d9534f; }
+
+  /* Submit Button */
+  .btn-submit {
+    background: linear-gradient(135deg, #007bff, #00b4ff);
+    color: white;
+  }
+  .btn-submit:hover {
+    background: linear-gradient(135deg, #0095ff, #00c6ff);
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(0, 148, 255, 0.6);
+  }
+
+  /* Delete Button */
+  .btn-delete {
+    background: linear-gradient(135deg, #d9534f, #ff6b6b);
+    color: white;
+  }
+  .btn-delete:hover {
+    background: linear-gradient(135deg, #ff3c3c, #ff7272);
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(255, 80, 80, 0.6);
+  }
 </style>
 </head>
 <body>
@@ -398,7 +445,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       var latlng = e.latlng;
       var popupContent = `
         <div class="popup-form">
-          <h4>Submit Hazard Observation</h4>
+          <h4 style="margin-bottom:6px;">Submit Hazard Observation</h4>
           <label>Hazard Type:</label>
           <select id="hazardType">
             <option>Flood</option>
@@ -411,7 +458,9 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
           <textarea id="hazardDesc" rows="3" placeholder="Enter details..."></textarea>
           <label>Upload Photo:</label>
           <input type="file" id="hazardPhoto" accept="image/*" />
-          <button id="saveReport" class="btn-submit">Submit Report</button>
+          <div class="popup-buttons">
+            <button id="saveReport" class="btn-submit">Submit Report</button>
+          </div>
         </div>
       `;
 
