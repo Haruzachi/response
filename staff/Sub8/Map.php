@@ -303,10 +303,24 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    #map { height: 100vh; width: 100%; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #0d0d0d;
+      color: white;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+      transform: perspective(800px) rotateX(25deg); /* Gives a 3D tilt look */
+      transform-origin: center bottom;
+      border-radius: 10px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    }
     .legend {
       background: white;
       padding: 10px;
@@ -330,34 +344,29 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
   <script>
     // Initialize the map
-    var map = L.map('map').setView([12.8797, 121.7740], 6); // Philippines center
+    var map = L.map('map', {
+      zoomControl: false, // cleaner look
+      minZoom: 5,
+      maxZoom: 18
+    }).setView([12.8797, 121.7740], 6);
 
-    // Base layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: 'Map data © OpenStreetMap contributors'
+    // Add 3D terrain base map (Esri World Hillshade)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Esri & OpenStreetMap contributors',
+      maxZoom: 18
     }).addTo(map);
 
-    // Sample hazard data (no API needed)
+    // Add labels overlay
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      opacity: 0.7
+    }).addTo(map);
+
+    // Sample hazard data
     var hazards = [
-      {
-        name: "Flood-Prone Area - Manila",
-        type: "Flood",
-        coords: [14.5995, 120.9842],
-        color: "blue"
-      },
-      {
-        name: "Landslide-Prone Area - Benguet",
-        type: "Landslide",
-        coords: [16.3993, 120.5976],
-        color: "brown"
-      },
-      {
-        name: "Storm Surge Risk - Tacloban",
-        type: "Storm Surge",
-        coords: [11.2445, 125.0036],
-        color: "red"
-      }
+      { name: "Flood-Prone Area - Manila", type: "Flood", coords: [14.5995, 120.9842], color: "blue" },
+      { name: "Landslide-Prone Area - Benguet", type: "Landslide", coords: [16.3993, 120.5976], color: "brown" },
+      { name: "Storm Surge Risk - Tacloban", type: "Storm Surge", coords: [11.2445, 125.0036], color: "red" }
     ];
 
     // Add hazard markers
@@ -368,15 +377,13 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
         color: "#fff",
         weight: 2,
         opacity: 1,
-        fillOpacity: 0.8
+        fillOpacity: 0.9
       }).addTo(map);
-
       marker.bindPopup("<b>" + hazard.name + "</b><br>Type: " + hazard.type);
     });
 
     // Add a legend
     var legend = L.control({ position: "bottomright" });
-
     legend.onAdd = function (map) {
       var div = L.DomUtil.create("div", "legend");
       div.innerHTML += "<h4>Hazard Types</h4>";
@@ -385,10 +392,8 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       div.innerHTML += '<i style="background: red"></i> Storm Surge Risk<br>';
       return div;
     };
-
     legend.addTo(map);
   </script>
-
 
   </main>
   <!---============================== MODALS ==============================--->
