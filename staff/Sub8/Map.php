@@ -303,49 +303,59 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: #000;
-      font-family: Arial, sans-serif;
-    }
-    #map {
-      height: 100%;
-      width: 100%;
-      transform-origin: center bottom;
-      box-shadow: 0 0 30px rgba(0,0,0,0.6);
-    }
-    .legend {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 18px;
-      color: #333;
-    }
-    .legend i {
-      width: 18px;
-      height: 18px;
-      float: left;
-      margin-right: 8px;
-      opacity: 0.8;
-    }
-    .popup-form input,
-    .popup-form select,
-    .popup-form textarea {
-      width: 100%;
-      margin: 5px 0;
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 13px;
-    }
-  </style>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: #000;
+    font-family: Arial, sans-serif;
+  }
+  #map {
+    height: 100%;
+    width: 100%;
+    transform-origin: center bottom;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+  }
+  .legend {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 18px;
+    color: #333;
+  }
+  .legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.8;
+  }
+  .popup-form input,
+  .popup-form select,
+  .popup-form textarea {
+    width: 100%;
+    margin: 5px 0;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+  }
+  .popup-buttons button {
+    margin: 4px 3px 0 0;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+  }
+  .btn-submit { background: #007bff; }
+  .btn-delete { background: #d9534f; }
+</style>
 </head>
 <body>
   <div id="map"></div>
@@ -401,7 +411,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
           <textarea id="hazardDesc" rows="3" placeholder="Enter details..."></textarea>
           <label>Upload Photo:</label>
           <input type="file" id="hazardPhoto" accept="image/*" />
-          <button id="saveReport" style="margin-top:6px; background:#007bff; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">Submit Report</button>
+          <button id="saveReport" class="btn-submit">Submit Report</button>
         </div>
       `;
 
@@ -410,22 +420,39 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
         .setContent(popupContent)
         .openOn(map);
 
-      // Save data locally (for demo)
+      // Handle submission
       setTimeout(() => {
         document.getElementById("saveReport").onclick = function() {
           const type = document.getElementById("hazardType").value;
           const desc = document.getElementById("hazardDesc").value;
 
-          L.marker(latlng)
-            .addTo(map)
-            .bindPopup(`<b>${type}</b><br>${desc}`)
-            .openPopup();
+          // Create marker
+          var marker = L.marker(latlng).addTo(map);
+
+          // Marker popup with delete button
+          var markerPopup = `
+            <b>${type}</b><br>${desc}<br>
+            <div class="popup-buttons">
+              <button class="btn-delete" onclick="deleteMarker(${marker._leaflet_id})">Delete</button>
+            </div>
+          `;
+
+          marker.bindPopup(markerPopup).openPopup();
 
           alert("✅ Hazard report submitted successfully!");
           map.closePopup();
         };
-      }, 500);
+      }, 300);
     });
+
+    // Delete function for markers
+    function deleteMarker(id) {
+      var marker = map._layers[id];
+      if (marker) {
+        map.removeLayer(marker);
+        alert("🗑️ Marker deleted successfully!");
+      }
+    }
   </script>
 
   </main>
