@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
     $confirm_password = trim($_POST['confirm_password']);
+
     $role = 'user'; // Default role
 
     //______________________________________________//
@@ -30,37 +31,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->fetch()) {
                 $error = "Email already registered!";
             } else {
-                // Check if username already exists
-                $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-                $stmt->execute([$username]);
+                // Generate OTP for verification
+                $otp = random_int(100000, 999999);
+                $otp_expiry = date("Y-m-d H:i:s", strtotime("+10 minutes"));
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-                if ($stmt->fetch()) {
-                    $error = "Username already taken!";
+                // Insert unverified user
+                $stmt = $conn->prepare("INSERT INTO users (username, email, password, role, otp_code, otp_expiration, is_verified)
+                                        VALUES (?, ?, ?, ?, ?, ?, 0)");
+                $stmt->execute([$username, $email, $hashed, $role, $otp, $otp_expiry]);
+
+                // Send OTP via email
+                $subject = "Verify your account - Emergency Response System";
+                $message = "Hello $username,\n\nYour verification code is: $otp\n\nThis code will expire in 10 minutes.\n\nThank you.";
+                $headers = "From: no-reply@emergency-response.com";
+
+                if (mail($email, $subject, $message, $headers)) {
+                    $_SESSION['pending_email'] = $email;
+                    header("Location: verify_otp.php");
+                    exit;
                 } else {
-                    // Generate OTP for email verification
-                    $otp_code = random_int(100000, 999999);
-                    $otp_expiration = date("Y-m-d H:i:s", strtotime("+10 minutes"));
-                    $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-                    // Insert user data
-                    $stmt = $conn->prepare("
-                        INSERT INTO users (username, email, password, role, otp_code, otp_expiration)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    ");
-                    $stmt->execute([$username, $email, $hashed, $role, $otp_code, $otp_expiration]);
-
-                    // Send OTP via email
-                    $subject = "Verify your account - Emergency Response System";
-                    $message = "Hello $username,\n\nYour verification code is: $otp_code\n\nThis code will expire in 10 minutes.\n\nThank you.";
-                    $headers = "From: no-reply@emergency-response.com";
-
-                    if (mail($email, $subject, $message, $headers)) {
-                        $_SESSION['pending_email'] = $email;
-                        header("Location: verify_otp.php");
-                        exit;
-                    } else {
-                        $error = "Unable to send OTP. Please check your email configuration.";
-                    }
+                    $error = "Unable to send OTP. Please check your email configuration.";
                 }
             }
         } catch (PDOException $e) {
