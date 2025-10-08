@@ -177,80 +177,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <!-- Background Pattern Dots -->
   <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[length:40px_40px]"></div>
 
-  <section id="hazard-report" class="py-16 bg-stone-900 text-center">
-  <h2 class="text-3xl font-bold mb-6 text-white">Submit Hazard Observation</h2>
-  <p class="text-gray-300 mb-8 max-w-xl mx-auto">
-    Click anywhere on the map to mark a hazard location and submit your observation.
-  </p>
-  <div id="map" class="mx-auto max-w-5xl rounded-xl overflow-hidden"></div>
-</section>
-
-<script>
-  var map = L.map('map').setView([14.676, 121.0437], 12); // Default: Quezon City
-
-  // Base satellite + labels
-  var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Esri, Maxar, Earthstar Geographics'
-  }).addTo(map);
-
-  var labels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap, © CartoDB'
-  }).addTo(map);
-
-  // Click event for hazard submission
-  map.on("click", function(e) {
-    var latlng = e.latlng;
-    var popupForm = `
-      <form action="" method="POST" enctype="multipart/form-data" class="popup-form">
-        <h3 class="font-semibold mb-1">Submit Hazard Observation</h3>
-        <input type="hidden" name="latitude" value="${latlng.lat}">
-        <input type="hidden" name="longitude" value="${latlng.lng}">
-        <label>Hazard Type:</label>
-        <select name="hazard_type" required>
-          <option value="Flood">Flood</option>
-          <option value="Landslide">Landslide</option>
-          <option value="Storm Surge">Storm Surge</option>
-          <option value="Fire">Fire</option>
-          <option value="Earthquake">Earthquake</option>
-        </select>
-        <label>Description:</label>
-        <textarea name="description" rows="3" required placeholder="Enter details..."></textarea>
-        <label>Photo:</label>
-        <input type="file" name="photo" accept="image/*">
-        <button type="submit" name="submit_hazard" style="margin-top:6px; background:#007bff; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">Submit</button>
-      </form>
-    `;
-    L.popup().setLatLng(latlng).setContent(popupForm).openOn(map);
-  });
-</script>
-
-<?php
-// Handle hazard submission
-if (isset($_POST['submit_hazard'])) {
-  $lat = $_POST['latitude'];
-  $lng = $_POST['longitude'];
-  $type = $_POST['hazard_type'];
-  $desc = $_POST['description'];
-  $photoPath = null;
-
-  // Upload photo if exists
-  if (!empty($_FILES['photo']['name'])) {
-    $targetDir = "../uploads/";
-    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
-    $fileName = time() . "_" . basename($_FILES["photo"]["name"]);
-    $targetFile = $targetDir . $fileName;
-    if (move_uploaded_file($_FILES["photo"]["tmp_name"], $targetFile)) {
-      $photoPath = "uploads/" . $fileName;
-    }
-  }
-
-  // Insert into DB
-  $stmt = $conn->prepare("INSERT INTO hazard_reports (latitude, longitude, hazard_type, description, photo) VALUES (?, ?, ?, ?, ?)");
-  $stmt->execute([$lat, $lng, $type, $desc, $photoPath]);
-
-  echo "<script>alert('✅ Hazard report submitted successfully!');</script>";
-}
-?>
+  <!-- Foreground Content -->
+  <div class="relative z-10 text-center px-6">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 text-white drop-shadow-lg">
+      Emergency Response System in Quezon City
+    </h1>
+    <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
+      An integrated system designed to improve emergency response times and ensure effective coordination among responders.
+    </p>
+    <a href="#about" 
+       class="hover-btn px-6 py-3 bg-blue-600 rounded-lg text-white font-medium hover:bg-blue-700 shadow-md transition transform hover:scale-105">
+      Learn More About Us
+    </a>
+  </div>
   </form>
  
  <!---============================== USER FEEDBACK SECTION ==============================--->
