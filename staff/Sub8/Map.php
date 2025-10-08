@@ -223,7 +223,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
             <i class='bx bx-chevron-down transition-transform duration-300'></i>
           </button>
           <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module8">
-            <li><a href="./Sub8/Map.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
+            <li><a href="#" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
           </ul>
         </li>
       </ul>
@@ -303,7 +303,24 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
+<section id="hazard-map" class="p-4">
+  <h2 class="text-2xl font-bold mb-4 text-white">Nationwide Operational Assessment of Hazards (Project NOAH)</h2>
+  <p class="mb-4 text-gray-300">
+    This embedded map shows live hazard data from Project NOAH — including flood, landslide, and storm surge information across the Philippines.
+  </p>
 
+  <div class="map-container" style="position:relative; width:100%; height:80vh; border-radius:10px; overflow:hidden;">
+    <iframe 
+      src="https://noah.up.edu.ph" 
+      title="Project NOAH Hazard Map"
+      width="100%"
+      height="100%"
+      frameborder="0"
+      style="border:0;"
+      allowfullscreen>
+    </iframe>
+  </div>
+</section>
 
 
   </main>
