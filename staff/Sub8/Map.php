@@ -303,24 +303,22 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     html, body {
       height: 100%;
       margin: 0;
       background: #000;
+      font-family: Arial, sans-serif;
     }
     #map {
       height: 100%;
       width: 100%;
+      transform: perspective(800px) rotateX(25deg);
       transform-origin: center bottom;
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
-      z-index: 0; /* ensures map stays behind modals */
+      box-shadow: 0 0 30px rgba(0,0,0,0.6);
     }
-    .modal {
-    z-index: 50; /* your modal should be above the map */
-}
     .legend {
       position: absolute;
       bottom: 20px;
@@ -339,9 +337,36 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       margin-right: 8px;
       opacity: 0.8;
     }
+    .report-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .report-btn:hover {
+      background: #0056b3;
+    }
+    .popup-form input,
+    .popup-form select,
+    .popup-form textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
+  <button class="report-btn" id="reportBtn">Submit Hazard Observation</button>
   <div id="map"></div>
 
   <script>
@@ -352,44 +377,20 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       maxZoom: 18
     }).setView([15.0, 121.0], 7);
 
-    // 1️⃣ Satellite base layer
+    // Satellite + labels
     var satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Esri, Maxar, Earthstar Geographics'
       }
     ).addTo(map);
 
-    // 2️⃣ Labels overlay (roads, cities, etc.)
     var labels = L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap, © CartoDB',
-        pane: 'overlayPane'
+        attribution: '© OpenStreetMap, © CartoDB'
       }
     ).addTo(map);
 
-    // 3️⃣ Hazard Zones (sample demo)
-    var lowHazard = L.polygon([
-      [14.8, 120.9],
-      [14.9, 121.1],
-      [14.7, 121.2],
-      [14.6, 121.0]
-    ], { color: "yellow", fillColor: "yellow", fillOpacity: 0.4 }).addTo(map).bindPopup("Low Hazard Zone");
-
-    var mediumHazard = L.polygon([
-      [16.4, 120.6],
-      [16.5, 120.8],
-      [16.3, 120.9],
-      [16.2, 120.7]
-    ], { color: "orange", fillColor: "orange", fillOpacity: 0.5 }).addTo(map).bindPopup("Medium Hazard Zone");
-
-    var highHazard = L.polygon([
-      [11.2, 125.0],
-      [11.3, 125.1],
-      [11.1, 125.2],
-      [11.0, 125.1]
-    ], { color: "red", fillColor: "red", fillOpacity: 0.5 }).addTo(map).bindPopup("High Hazard Zone");
-
-    // 4️⃣ Legend
+    // Legend
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function (map) {
       var div = L.DomUtil.create("div", "legend");
@@ -400,6 +401,60 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       return div;
     };
     legend.addTo(map);
+
+    // Hazard reporting
+    var reportingMode = false;
+    document.getElementById("reportBtn").onclick = function() {
+      reportingMode = !reportingMode;
+      this.textContent = reportingMode ? "Click on Map to Report" : "Submit Hazard Observation";
+      this.style.background = reportingMode ? "#28a745" : "#007bff";
+    };
+
+    map.on("click", function(e) {
+      if (!reportingMode) return;
+
+      var latlng = e.latlng;
+      var popupContent = `
+        <div class="popup-form">
+          <h4>Submit Hazard Report</h4>
+          <label>Hazard Type:</label>
+          <select id="hazardType">
+            <option>Flood</option>
+            <option>Landslide</option>
+            <option>Storm Surge</option>
+            <option>Earthquake</option>
+            <option>Fire</option>
+          </select>
+          <label>Description:</label>
+          <textarea id="hazardDesc" rows="3" placeholder="Enter details..."></textarea>
+          <label>Upload Photo:</label>
+          <input type="file" id="hazardPhoto" accept="image/*" />
+          <button id="saveReport" style="margin-top:6px; background:#007bff; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">Save Report</button>
+        </div>
+      `;
+
+      var popup = L.popup()
+        .setLatLng(latlng)
+        .setContent(popupContent)
+        .openOn(map);
+
+      // Save data locally (can connect to PHP later)
+      setTimeout(() => {
+        document.getElementById("saveReport").onclick = function() {
+          const type = document.getElementById("hazardType").value;
+          const desc = document.getElementById("hazardDesc").value;
+          L.marker(latlng)
+            .addTo(map)
+            .bindPopup(`<b>${type}</b><br>${desc}`)
+            .openPopup();
+          alert("✅ Hazard report submitted successfully!");
+          map.closePopup();
+          reportingMode = false;
+          document.getElementById("reportBtn").textContent = "Submit Hazard Observation";
+          document.getElementById("reportBtn").style.background = "#007bff";
+        };
+      }, 500);
+    });
   </script>
 
   </main>
