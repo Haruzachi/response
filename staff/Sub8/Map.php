@@ -303,17 +303,17 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-<div id="hazardMap" style="height: 80vh; width: 100%;"></div>
+<div id="map" style="height: 80vh;"></div>
 <script>
-  var map = L.map('hazardMap').setView([12.8797, 121.7740], 6); // Philippines center
+  var map = L.map('map').setView([12.8797, 121.7740], 6);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
   }).addTo(map);
 
-  // Example NOAH WMS layer (if available)
-  L.tileLayer.wms('https://noah2.up.edu.ph/geoserver/wms?', {
-    layers: 'noah:flood_hazard',
+  // Sample working WMS (use this to test your Leaflet setup)
+  L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+    layers: 'topp:states',
     format: 'image/png',
     transparent: true
   }).addTo(map);
