@@ -303,31 +303,32 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     html, body {
       height: 100%;
       margin: 0;
-      background: #0d0d0d;
-      color: white;
-      font-family: "Segoe UI", Arial, sans-serif;
+      background: #000;
     }
     #map {
       height: 100%;
       width: 100%;
-      transform: perspective(800px) rotateX(25deg); /* Gives a 3D tilt look */
+      transform: perspective(800px) rotateX(25deg);
       transform-origin: center bottom;
       border-radius: 10px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
     }
     .legend {
-      background: white;
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
       padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
       line-height: 18px;
       color: #333;
-      border-radius: 8px;
-      font-size: 14px;
     }
     .legend i {
       width: 18px;
@@ -339,57 +340,51 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
   </style>
 </head>
 <body>
-
   <div id="map"></div>
 
   <script>
-    // Initialize the map
+    // Initialize map
     var map = L.map('map', {
-      zoomControl: false, // cleaner look
+      zoomControl: true,
       minZoom: 5,
       maxZoom: 18
-    }).setView([12.8797, 121.7740], 6);
+    }).setView([15.0, 121.0], 7);
 
-    // Add 3D terrain base map (Esri World Hillshade)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Esri & OpenStreetMap contributors',
-      maxZoom: 18
+    // Esri Satellite Base Map (for realistic terrain)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Esri, Maxar, Earthstar Geographics'
     }).addTo(map);
 
-    // Add labels overlay
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      opacity: 0.7
-    }).addTo(map);
+    // Add Hazard Zones (custom colored polygons)
+    var lowHazard = L.polygon([
+      [14.8, 120.9],
+      [14.9, 121.1],
+      [14.7, 121.2],
+      [14.6, 121.0]
+    ], { color: "yellow", fillColor: "yellow", fillOpacity: 0.4 }).addTo(map).bindPopup("Low Hazard Zone");
 
-    // Sample hazard data
-    var hazards = [
-      { name: "Flood-Prone Area - Manila", type: "Flood", coords: [14.5995, 120.9842], color: "blue" },
-      { name: "Landslide-Prone Area - Benguet", type: "Landslide", coords: [16.3993, 120.5976], color: "brown" },
-      { name: "Storm Surge Risk - Tacloban", type: "Storm Surge", coords: [11.2445, 125.0036], color: "red" }
-    ];
+    var mediumHazard = L.polygon([
+      [16.4, 120.6],
+      [16.5, 120.8],
+      [16.3, 120.9],
+      [16.2, 120.7]
+    ], { color: "orange", fillColor: "orange", fillOpacity: 0.5 }).addTo(map).bindPopup("Medium Hazard Zone");
 
-    // Add hazard markers
-    hazards.forEach(function(hazard) {
-      var marker = L.circleMarker(hazard.coords, {
-        radius: 10,
-        fillColor: hazard.color,
-        color: "#fff",
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.9
-      }).addTo(map);
-      marker.bindPopup("<b>" + hazard.name + "</b><br>Type: " + hazard.type);
-    });
+    var highHazard = L.polygon([
+      [11.2, 125.0],
+      [11.3, 125.1],
+      [11.1, 125.2],
+      [11.0, 125.1]
+    ], { color: "red", fillColor: "red", fillOpacity: 0.5 }).addTo(map).bindPopup("High Hazard Zone");
 
-    // Add a legend
+    // Add Legend
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function (map) {
       var div = L.DomUtil.create("div", "legend");
-      div.innerHTML += "<h4>Hazard Types</h4>";
-      div.innerHTML += '<i style="background: blue"></i> Flood-Prone<br>';
-      div.innerHTML += '<i style="background: brown"></i> Landslide-Prone<br>';
-      div.innerHTML += '<i style="background: red"></i> Storm Surge Risk<br>';
+      div.innerHTML += "<strong>Hazard Level</strong><br>";
+      div.innerHTML += '<i style="background: yellow"></i> Low<br>';
+      div.innerHTML += '<i style="background: orange"></i> Medium<br>';
+      div.innerHTML += '<i style="background: red"></i> High<br>';
       return div;
     };
     legend.addTo(map);
