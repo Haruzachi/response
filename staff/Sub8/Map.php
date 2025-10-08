@@ -315,7 +315,6 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
     #map {
       height: 100%;
       width: 100%;
-      transform: perspective(800px) rotateX(25deg);
       transform-origin: center bottom;
       box-shadow: 0 0 30px rgba(0,0,0,0.6);
     }
