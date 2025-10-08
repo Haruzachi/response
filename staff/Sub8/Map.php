@@ -303,24 +303,21 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-<section id="hazard-map" class="p-4">
-  <h2 class="text-2xl font-bold mb-4 text-white">Nationwide Operational Assessment of Hazards (Project NOAH)</h2>
-  <p class="mb-4 text-gray-300">
-    This embedded map shows live hazard data from Project NOAH — including flood, landslide, and storm surge information across the Philippines.
-  </p>
+<div id="hazardMap" style="height: 80vh; width: 100%;"></div>
+<script>
+  var map = L.map('hazardMap').setView([12.8797, 121.7740], 6); // Philippines center
 
-  <div class="map-container" style="position:relative; width:100%; height:80vh; border-radius:10px; overflow:hidden;">
-    <iframe 
-      src="https://noah.up.edu.ph" 
-      title="Project NOAH Hazard Map"
-      width="100%"
-      height="100%"
-      frameborder="0"
-      style="border:0;"
-      allowfullscreen>
-    </iframe>
-  </div>
-</section>
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+  }).addTo(map);
+
+  // Example NOAH WMS layer (if available)
+  L.tileLayer.wms('https://noah2.up.edu.ph/geoserver/wms?', {
+    layers: 'noah:flood_hazard',
+    format: 'image/png',
+    transparent: true
+  }).addTo(map);
+</script>
 
 
   </main>
