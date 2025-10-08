@@ -236,7 +236,7 @@ $resources = $conn->query("SELECT * FROM resources WHERE status='Available'")->f
             <i class='bx bx-chevron-down transition-transform duration-300'></i>
           </button>
           <ul class="max-h-0 overflow-hidden flex-col transition-all duration-500 ml-4 submodule" id="module8">
-            <li><a href="./Sub8/Map.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
+            <li><a href="../Sub8/Map.php" class="flex items-center text-sm p-1 hover:text-blue-200"><i class='bx bx-edit'></i><span class="ml-1">Map</span></a></li>
           </ul>
         </li>
       </ul>
