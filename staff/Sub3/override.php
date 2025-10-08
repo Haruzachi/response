@@ -465,7 +465,7 @@ $resources = $conn->query("SELECT * FROM resources WHERE status='Available'")->f
 
             <button 
               type="submit" 
-              class="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:bg-green-700 transition duration-200"
+              class="w-full bg-green-600 text-white py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
             >
               Save Changes
             </button>
