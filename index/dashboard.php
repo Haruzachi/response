@@ -10,34 +10,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
     header("Location: dashboard.php");
     exit;
 }
-
-// Handle report submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $location = $_POST['location'] ?? '';
-    $latitude = $_POST['latitude'] ?? '';
-    $longitude = $_POST['longitude'] ?? '';
-    $description = $_POST['description'] ?? '';
-    $photo = '';
-
-    if (!empty($_FILES['photo']['name'])) {
-        $targetDir = "uploads/";
-        if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
-        $photoName = time() . "_" . basename($_FILES["photo"]["name"]);
-        $targetFile = $targetDir . $photoName;
-        if (move_uploaded_file($_FILES["photo"]["tmp_name"], $targetFile)) {
-            $photo = $photoName;
-        }
-    }
-
-    $stmt = $conn->prepare("INSERT INTO hazard_reports (location, latitude, longitude, description, photo) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$location, $latitude, $longitude, $description, $photo]);
-
-    header("Location: map.php?location=" . urlencode($location));
-    exit;
-}
-
-$stmt = $conn->query("SELECT * FROM hazard_reports ORDER BY created_at DESC");
-$reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
@@ -190,21 +162,6 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <main class="flex-1 pt-24">
 <form id="home" class="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
   
-<style>
-  .form-card {
-    position: absolute;
-    top: 20px; left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    padding: 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    z-index: 999;
-    width: 90%;
-    max-width: 500px;
-  }
-</style>
-
   <!-- Background Animated Circles -->
   <div class="absolute inset-0">
     <!-- Large glowing circle -->
@@ -220,21 +177,80 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <!-- Background Pattern Dots -->
   <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[length:40px_40px]"></div>
 
-  <!-- Hazard Report Form -->
-<div class="form-card">
-  <h2 class="text-2xl font-bold mb-2 text-gray-800">Submit Hazard Observation</h2>
-  <p class="text-gray-600 mb-4">You searched: <strong><?= $searchedLocation ?></strong></p>
+  <section id="hazard-report" class="py-16 bg-stone-900 text-center">
+  <h2 class="text-3xl font-bold mb-6 text-white">Submit Hazard Observation</h2>
+  <p class="text-gray-300 mb-8 max-w-xl mx-auto">
+    Click anywhere on the map to mark a hazard location and submit your observation.
+  </p>
+  <div id="map" class="mx-auto max-w-5xl rounded-xl overflow-hidden"></div>
+</section>
 
-  <form method="POST" enctype="multipart/form-data" class="space-y-3">
-    <input type="text" name="location" value="<?= $searchedLocation ?>" class="w-full p-2 border border-gray-300 rounded">
-    <textarea name="description" placeholder="Describe the situation..." class="w-full p-2 border border-gray-300 rounded"></textarea>
-    <input type="file" name="photo" accept="image/*" class="w-full text-sm text-gray-500">
-    <input type="hidden" name="latitude" id="latitude">
-    <input type="hidden" name="longitude" id="longitude">
-    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Submit Report</button>
-  </form>
-  <button id="locateBtn" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">Use My Current Location</button>
-</div>
+<script>
+  var map = L.map('map').setView([14.676, 121.0437], 12); // Default: Quezon City
+
+  // Base satellite + labels
+  var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Esri, Maxar, Earthstar Geographics'
+  }).addTo(map);
+
+  var labels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap, © CartoDB'
+  }).addTo(map);
+
+  // Click event for hazard submission
+  map.on("click", function(e) {
+    var latlng = e.latlng;
+    var popupForm = `
+      <form action="" method="POST" enctype="multipart/form-data" class="popup-form">
+        <h3 class="font-semibold mb-1">Submit Hazard Observation</h3>
+        <input type="hidden" name="latitude" value="${latlng.lat}">
+        <input type="hidden" name="longitude" value="${latlng.lng}">
+        <label>Hazard Type:</label>
+        <select name="hazard_type" required>
+          <option value="Flood">Flood</option>
+          <option value="Landslide">Landslide</option>
+          <option value="Storm Surge">Storm Surge</option>
+          <option value="Fire">Fire</option>
+          <option value="Earthquake">Earthquake</option>
+        </select>
+        <label>Description:</label>
+        <textarea name="description" rows="3" required placeholder="Enter details..."></textarea>
+        <label>Photo:</label>
+        <input type="file" name="photo" accept="image/*">
+        <button type="submit" name="submit_hazard" style="margin-top:6px; background:#007bff; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">Submit</button>
+      </form>
+    `;
+    L.popup().setLatLng(latlng).setContent(popupForm).openOn(map);
+  });
+</script>
+
+<?php
+// Handle hazard submission
+if (isset($_POST['submit_hazard'])) {
+  $lat = $_POST['latitude'];
+  $lng = $_POST['longitude'];
+  $type = $_POST['hazard_type'];
+  $desc = $_POST['description'];
+  $photoPath = null;
+
+  // Upload photo if exists
+  if (!empty($_FILES['photo']['name'])) {
+    $targetDir = "../uploads/";
+    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
+    $fileName = time() . "_" . basename($_FILES["photo"]["name"]);
+    $targetFile = $targetDir . $fileName;
+    if (move_uploaded_file($_FILES["photo"]["tmp_name"], $targetFile)) {
+      $photoPath = "uploads/" . $fileName;
+    }
+  }
+
+  // Insert into DB
+  $stmt = $conn->prepare("INSERT INTO hazard_reports (latitude, longitude, hazard_type, description, photo) VALUES (?, ?, ?, ?, ?)");
+  $stmt->execute([$lat, $lng, $type, $desc, $photoPath]);
+
+  echo "<script>alert('✅ Hazard report submitted successfully!');</script>";
+}
+?>
   </form>
  
  <!---============================== USER FEEDBACK SECTION ==============================--->

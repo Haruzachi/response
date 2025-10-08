@@ -303,103 +303,47 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
 <!---============================== DASHBOARD ==============================--->
 
-   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <?php
+$reports = $conn->query("SELECT * FROM hazard_reports ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: #000;
-    }
-    #map {
-      height: 100%;
-      width: 100%;
-      transform-origin: center bottom;
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
-      z-index: 0; /* ensures map stays behind modals */
-    }
-    .modal {
-    z-index: 50; /* your modal should be above the map */
-}
-    .legend {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 18px;
-      color: #333;
-    }
-    .legend i {
-      width: 18px;
-      height: 18px;
-      float: left;
-      margin-right: 8px;
-      opacity: 0.8;
-    }
+    html, body { height: 100%; margin: 0; background: #111; }
+    #map { height: 100%; width: 100%; }
+    .popup-img { width: 180px; border-radius: 6px; margin-top: 6px; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <script>
-    // Initialize map
-    var map = L.map('map', {
-      zoomControl: true,
-      minZoom: 5,
-      maxZoom: 18
-    }).setView([15.0, 121.0], 7);
+    var map = L.map('map').setView([14.676, 121.0437], 11);
 
-    // 1️⃣ Satellite base layer
     var satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Esri, Maxar, Earthstar Geographics'
-      }
-    ).addTo(map);
+      }).addTo(map);
 
-    // 2️⃣ Labels overlay (roads, cities, etc.)
     var labels = L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap, © CartoDB',
-        pane: 'overlayPane'
-      }
-    ).addTo(map);
+        attribution: '© OpenStreetMap, © CartoDB'
+      }).addTo(map);
 
-    // 3️⃣ Hazard Zones (sample demo)
-    var lowHazard = L.polygon([
-      [14.8, 120.9],
-      [14.9, 121.1],
-      [14.7, 121.2],
-      [14.6, 121.0]
-    ], { color: "yellow", fillColor: "yellow", fillOpacity: 0.4 }).addTo(map).bindPopup("Low Hazard Zone");
-
-    var mediumHazard = L.polygon([
-      [16.4, 120.6],
-      [16.5, 120.8],
-      [16.3, 120.9],
-      [16.2, 120.7]
-    ], { color: "orange", fillColor: "orange", fillOpacity: 0.5 }).addTo(map).bindPopup("Medium Hazard Zone");
-
-    var highHazard = L.polygon([
-      [11.2, 125.0],
-      [11.3, 125.1],
-      [11.1, 125.2],
-      [11.0, 125.1]
-    ], { color: "red", fillColor: "red", fillOpacity: 0.5 }).addTo(map).bindPopup("High Hazard Zone");
-
-    // 4️⃣ Legend
-    var legend = L.control({ position: "bottomright" });
-    legend.onAdd = function (map) {
-      var div = L.DomUtil.create("div", "legend");
-      div.innerHTML += "<strong>Hazard Level</strong><br>";
-      div.innerHTML += '<i style="background: yellow"></i> Low<br>';
-      div.innerHTML += '<i style="background: orange"></i> Medium<br>';
-      div.innerHTML += '<i style="background: red"></i> High<br>';
-      return div;
-    };
-    legend.addTo(map);
+    <?php foreach ($reports as $r): ?>
+      L.marker([<?= $r['latitude'] ?>, <?= $r['longitude'] ?>])
+        .addTo(map)
+        .bindPopup(`
+          <b><?= htmlspecialchars($r['hazard_type']) ?></b><br>
+          <?= nl2br(htmlspecialchars($r['description'])) ?><br>
+          <?php if ($r['photo']): ?>
+            <img src='../../<?= $r['photo'] ?>' class='popup-img'>
+          <?php endif; ?>
+          <br><small><i>Reported on <?= $r['created_at'] ?></i></small>
+        `);
+    <?php endforeach; ?>
   </script>
 
   </main>
