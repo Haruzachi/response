@@ -6,16 +6,16 @@ session_start();
 // Handle registration form submission
 //______________________________________________//
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
     $confirm_password = trim($_POST['confirm_password']);
-
     $role = 'user'; // Default role
 
     //______________________________________________//
     // Validate form inputs
     //______________________________________________//
-    if (empty($email) || empty($password) || empty($confirm_password)) {
+    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Invalid email format.";
@@ -30,29 +30,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->fetch()) {
                 $error = "Email already registered!";
             } else {
-                // Generate OTP for email verification
-                $otp_code = random_int(100000, 999999);
-                $otp_expiration = date("Y-m-d H:i:s", strtotime("+10 minutes"));
-                $hashed = password_hash($password, PASSWORD_DEFAULT);
+                // Check if username already exists
+                $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+                $stmt->execute([$username]);
 
-                // Insert unverified user into database
-                $stmt = $conn->prepare("
-                    INSERT INTO users (email, password, role, otp_code, otp_expiration)
-                    VALUES (?, ?, ?, ?, ?)
-                ");
-                $stmt->execute([$email, $hashed, $role, $otp_code, $otp_expiration]);
-
-                // Send OTP via email
-                $subject = "Verify your account - Emergency Response System";
-                $message = "Hello,\n\nYour verification code is: $otp_code\n\nThis code will expire in 10 minutes.\n\nThank you.";
-                $headers = "From: no-reply@emergency-response.com";
-
-                if (mail($email, $subject, $message, $headers)) {
-                    $_SESSION['pending_email'] = $email;
-                    header("Location: verify_otp.php");
-                    exit;
+                if ($stmt->fetch()) {
+                    $error = "Username already taken!";
                 } else {
-                    $error = "Unable to send OTP. Please check your email configuration.";
+                    // Generate OTP for email verification
+                    $otp_code = random_int(100000, 999999);
+                    $otp_expiration = date("Y-m-d H:i:s", strtotime("+10 minutes"));
+                    $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+                    // Insert user data
+                    $stmt = $conn->prepare("
+                        INSERT INTO users (username, email, password, role, otp_code, otp_expiration)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([$username, $email, $hashed, $role, $otp_code, $otp_expiration]);
+
+                    // Send OTP via email
+                    $subject = "Verify your account - Emergency Response System";
+                    $message = "Hello $username,\n\nYour verification code is: $otp_code\n\nThis code will expire in 10 minutes.\n\nThank you.";
+                    $headers = "From: no-reply@emergency-response.com";
+
+                    if (mail($email, $subject, $message, $headers)) {
+                        $_SESSION['pending_email'] = $email;
+                        header("Location: verify_otp.php");
+                        exit;
+                    } else {
+                        $error = "Unable to send OTP. Please check your email configuration.";
+                    }
                 }
             }
         } catch (PDOException $e) {
@@ -151,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </header>
 
   <!---============================== REGISTRATION FORM ==============================--->
-  <main class="flex-1 flex items-center justify-center px-4">
+   <main class="flex-1 flex items-center justify-center px-4">
     <div class="bg-gradient-to-b from-stone-800 to-sky-800 rounded-2xl text-black shadow-lg w-full max-w-md p-8">
       <div class="flex justify-center mb-6">
         <img src="../img/Logo.png" alt="Logo" class="w-20 h-20 rounded-full shadow-md bg-stone-800 p-2">
@@ -169,6 +177,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?php endif; ?>
 
       <form method="POST" class="space-y-4">
+        <div>
+          <label class="block text-white mb-1 text-sm">Username</label>
+          <input type="text" name="username" placeholder="Enter your username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+        </div>
+
         <div>
           <label class="block text-white mb-1 text-sm">Email Address</label>
           <input type="email" name="email" placeholder="Enter your email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
