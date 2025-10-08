@@ -316,7 +316,11 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       width: 100%;
       transform-origin: center bottom;
       box-shadow: 0 0 40px rgba(0,0,0,0.6);
+      z-index: 0; /* ensures map stays behind modals */
     }
+    .modal {
+    z-index: 50; /* your modal should be above the map */
+}
     .legend {
       position: absolute;
       bottom: 20px;
