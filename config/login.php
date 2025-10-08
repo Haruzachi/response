@@ -6,28 +6,20 @@ session_start();
 // CREATE DEFAULT ADMIN, STAFF and SupAd ACCOUNTS
 //______________________________________________//
 try {
-    // Create default admin if not exists
-    $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    $checkAdmin->execute();
-    if ($checkAdmin->fetchColumn() == 0) {
-        $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertAdmin->execute(['admin', '123', 'admin']); // default admin account
-    }
+    $defaultAccounts = [
+        ['admin', '123', 'admin'],
+        ['staff', '123', 'staff'],
+        ['supad', '123', 'supad']
+    ];
 
-    // Create default staff if not exists
-    $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
-    $checkStaff->execute();
-    if ($checkStaff->fetchColumn() == 0) {
-        $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertStaff->execute(['staff', '123', 'staff']); // default staff account
-    }
-
-    // Create default SupAd if not exists
-    $checkSupAd = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'supad'");
-    $checkSupAd->execute();
-    if ($checkSupAd->fetchColumn() == 0) {
-        $insertSupAd = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertSupAd->execute(['supad', '123', 'supad']); // default supad account
+    foreach ($defaultAccounts as $acc) {
+        [$username, $password, $role] = $acc;
+        $check = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+        $check->execute([$username]);
+        if ($check->fetchColumn() == 0) {
+            $insert = $conn->prepare("INSERT INTO users (username, password, role, email) VALUES (?, ?, ?, ?)");
+            $insert->execute([$username, $password, $role, $username . "@example.com"]);
+        }
     }
 } catch (PDOException $e) {
     die("Error creating default accounts: " . $e->getMessage());
@@ -36,17 +28,12 @@ try {
 //______________________________________________//
 // LOGIN ATTEMPTS SYSTEM (2-minute lockout)
 //______________________________________________//
-if (!isset($_SESSION['login_attempts'])) {
-    $_SESSION['login_attempts'] = 0;
-}
-if (!isset($_SESSION['last_attempt_time'])) {
-    $_SESSION['last_attempt_time'] = time();
-}
+if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
+if (!isset($_SESSION['last_attempt_time'])) $_SESSION['last_attempt_time'] = time();
 
-$lockout_duration = 120; // 2 minutes
-$max_attempts = 3;       // Max allowed failed attempts
+$lockout_duration = 120;
+$max_attempts = 3;
 
-// Reset attempts if 2 minutes passed
 if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['last_attempt_time'] = time();
@@ -55,26 +42,31 @@ if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
 $lockout = $_SESSION['login_attempts'] >= $max_attempts;
 
 //______________________________________________//
-// LOGIN HANDLER
+// LOGIN HANDLER with 2FA EMAIL OTP
 //______________________________________________//
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) {
     $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
+$password = trim($_POST['password']);
+
+// Auto-append Gmail for non-default users
+$defaultUsers = ['admin', 'staff', 'supad'];
+if (!in_array($username, $defaultUsers)) {
+    // If user didn't type "@gmail.com", add it automatically
+    if (strpos($username, '@') === false) {
+        $username .= '@gmail.com';
+    }
+}
 
     if ($lockout) {
-        // Show remaining lockout time
         $remaining_time = $lockout_duration - (time() - $_SESSION['last_attempt_time']);
         $error = "Too many failed attempts. Please wait {$remaining_time} seconds before trying again.";
     } else {
-        // Fetch user by username
         $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // If user password is plain text (admin/staff default accounts)
-            // or hashed (users who changed password via forgot password)
             $isValidPassword = false;
             if (password_verify($password, $user['password'])) {
                 $isValidPassword = true;
@@ -83,43 +75,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) 
             }
 
             if ($isValidPassword) {
-                // Successful login
-                $_SESSION['login_attempts'] = 0; // Reset failed attempts
-                $_SESSION['last_attempt_time'] = time();
+                // Generate OTP
+                $otp = rand(100000, 999999);
+                $expiry = date("Y-m-d H:i:s", strtotime("+5 minutes"));
+                $updateOtp = $conn->prepare("UPDATE users SET otp_code=?, otp_expiration=? WHERE id=?");
+                $updateOtp->execute([$otp, $expiry, $user['id']]);
 
-                $_SESSION['user'] = [
+                // Send Email
+                $to = $user['email'];
+                $subject = "Your Emergency System Login OTP";
+                $message = "Hello " . $user['username'] . ",\n\nYour OTP code is: $otp\nThis code will expire in 5 minutes.\n\nDo not share this code with anyone.";
+                $headers = "From: no-reply@emergency-system.com";
+
+                mail($to, $subject, $message, $headers);
+
+                // Save pending user
+                $_SESSION['pending_user'] = [
                     'id' => $user['id'],
                     'username' => $user['username'],
-                    'role' => $user['role'],
-                    'profile_image' => $user['profile_image'] ?? 'default.png'
+                    'role' => $user['role']
                 ];
 
-                $_SESSION['just_logged_in'] = true;
-
-                // Redirect based on role
-                switch ($user['role']) {
-                    case 'admin':
-                        header("Location: ../data/loadingadmin.php");
-                        break;
-                    case 'staff':
-                        header("Location: ../data/loadingstaff.php");
-                        break;
-                    case 'supad':
-                        header("Location: ../data/loadingsupad.php");
-                        break;
-                    default:
-                        header("Location: ../data/loadinguser.php");
-                        break;
-                }
+                header("Location: verify_otp.php");
                 exit;
             } else {
-                // Wrong password
                 $_SESSION['login_attempts']++;
                 $_SESSION['last_attempt_time'] = time();
                 $error = "Invalid username or password!";
             }
         } else {
-            // Username not found
             $_SESSION['login_attempts']++;
             $_SESSION['last_attempt_time'] = time();
             $error = "Invalid username or password!";
@@ -142,13 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     } elseif ($new_password !== $confirm_password) {
         $fp_error = "Passwords do not match.";
     } else {
-        // Check if username exists
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Hash the new password before updating
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $update = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
             if ($update->execute([$hashed_password, $username])) {
@@ -265,8 +247,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
     <div>
-        <label class="block text-white mb-1 text-sm">Username</label>
-        <input type="text" name="username" placeholder="Enter your username" 
+        <label class="block text-white mb-1 text-sm">Email Address</label>
+        <input type="text" name="username" placeholder="Enter Your Gmail" 
             class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
     </div>
 
@@ -303,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                 <form method="POST" class="space-y-4">
                     <input type="hidden" name="forgot_password" value="1">
                     <div>
-                        <input type="text" name="username" placeholder="Username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                        <input type="text" name="username" placeholder="Gmail" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
                     </div>
                     <div>
                         <input type="password" name="new_password" placeholder="New Password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>

@@ -105,3 +105,10 @@ CREATE TABLE IF NOT EXISTS feedback (
     feedback TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
+
+ALTER TABLE users 
+ADD COLUMN otp_code VARCHAR(6) NULL,
+ADD COLUMN otp_expiration DATETIME NULL;

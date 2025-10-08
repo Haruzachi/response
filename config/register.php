@@ -6,7 +6,7 @@ session_start();
 // Handle registration form submission
 //______________________________________________//
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
     $password = trim($_POST['password']);
     $confirm_password = trim($_POST['confirm_password']);
 
@@ -15,25 +15,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //______________________________________________//
     // Validate form inputs
     //______________________________________________//
-    if (empty($username) || empty($password) || empty($confirm_password)) {
+    if (empty($email) || empty($password) || empty($confirm_password)) {
         $error = "All fields are required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid email format.";
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
     } else {
         try {
-            // Check if username already exists
-            $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt->execute([$username]);
+            // Check if email already exists
+            $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
 
             if ($stmt->fetch()) {
-                $error = "Username already exists!";
+                $error = "Email already registered!";
             } else {
-                // Insert new user into the database
-                $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-                if ($stmt->execute([$username, $password, $role])) {
-                    $success = "Account created successfully!";
+                // Generate OTP for email verification
+                $otp = random_int(100000, 999999);
+                $otp_expiry = date("Y-m-d H:i:s", strtotime("+10 minutes"));
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+                // Insert unverified user into database
+                $stmt = $conn->prepare("INSERT INTO users (email, password, role, otp, otp_expiry, is_verified) VALUES (?, ?, ?, ?, ?, 0)");
+                $stmt->execute([$email, $hashed, $role, $otp, $otp_expiry]);
+
+                // Send OTP via email
+                $subject = "Verify your account - Emergency Response System";
+                $message = "Hello,\n\nYour verification code is: $otp\n\nThis code will expire in 10 minutes.\n\nThank you.";
+                $headers = "From: no-reply@emergency-response.com";
+
+                if (mail($email, $subject, $message, $headers)) {
+                    $_SESSION['pending_email'] = $email;
+                    header("Location: verify_otp.php");
+                    exit;
                 } else {
-                    $error = "Something went wrong. Please try again.";
+                    $error = "Unable to send OTP. Please check your email configuration.";
                 }
             }
         } catch (PDOException $e) {
@@ -53,19 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
 
-
   <style>
-    .logo-font {
-      font-family: 'Poppins', sans-serif;
-      letter-spacing: 1px;
-    }
-    
+    .logo-font { font-family: 'Poppins', sans-serif; letter-spacing: 1px; }
   </style>
 
   <script>
-    //______________________________________________//
-    // Toggle mobile menu
-    //______________________________________________//
     function toggleMenu() {
       const menu = document.getElementById('mobile-menu');
       menu.classList.toggle('hidden');
@@ -95,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="../index/setting.php" class="hover:text-blue-400 transition">Settings</a>
       </nav>
 
-      <!---============================== LOGIN / REGISTER / E-CALL ==============================--->
       <div class="flex space-x-6 hidden md:flex space-x-4">
         <a href="../config/login.php" class="flex items-center space-x-2 text-white font-medium transition duration-300 hover:text-blue-400">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,13 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
           </span>
         </a>
-
       </div>
 
-      <!---============================== MOBILE MENU BUTTONS ==============================--->
       <div class="flex items-center space-x-3 md:hidden">
-        
-
         <button onclick="toggleMenu()" class="focus:outline-none">
           <svg class="w-7 h-7" fill="none" stroke="white" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -147,13 +150,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!---============================== REGISTRATION FORM ==============================--->
   <main class="flex-1 flex items-center justify-center px-4">
     <div class="bg-gradient-to-b from-stone-800 to-sky-800 rounded-2xl text-black shadow-lg w-full max-w-md p-8">
-
       <div class="flex justify-center mb-6">
         <img src="../img/Logo.png" alt="Logo" class="w-20 h-20 rounded-full shadow-md bg-stone-800 p-2">
       </div>
 
       <h2 class="text-2xl text-white font-bold text-center mb-2">Create an Account</h2>
-      <p class="text-center text-gray-400 mb-6">Fill in the details below</p>
+      <p class="text-center text-gray-400 mb-6">Use your email for verification</p>
 
       <?php if (!empty($success)): ?>
         <p class="bg-green-100 text-green-700 p-2 rounded mb-4 text-center"><?= $success ?></p>
@@ -165,8 +167,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <form method="POST" class="space-y-4">
         <div>
-          <label class="block text-white mb-1 text-sm">Username</label>
-          <input type="text" name="username" placeholder="Choose a username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+          <label class="block text-white mb-1 text-sm">Email Address</label>
+          <input type="email" name="email" placeholder="Enter your email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
         </div>
 
         <div>
