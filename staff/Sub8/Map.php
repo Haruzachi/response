@@ -302,117 +302,130 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!---============================== DASHBOARD ==============================--->
-<? 
-// Handle new hazard submission
-if (isset($_POST['submit_hazard'])) {
-  $lat = $_POST['latitude'];
-  $lng = $_POST['longitude'];
-  $type = $_POST['hazard_type'];
-  $desc = $_POST['description'];
-  $photoPath = null;
-
-  // Upload photo if exists
-  if (!empty($_FILES['photo']['name'])) {
-    $targetDir = "../../uploads/";
-    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
-    $fileName = time() . "_" . basename($_FILES["photo"]["name"]);
-    $targetFile = $targetDir . $fileName;
-    if (move_uploaded_file($_FILES["photo"]["tmp_name"], $targetFile)) {
-      $photoPath = "uploads/" . $fileName;
-    }
-  }
-
-  // Insert into database
-  $stmt = $conn->prepare("INSERT INTO hazard_reports (latitude, longitude, hazard_type, description, photo) VALUES (?, ?, ?, ?, ?)");
-  $stmt->execute([$lat, $lng, $type, $desc, $photoPath]);
-}
-
-// Fetch all existing reports
-$reports = $conn->query("SELECT * FROM hazard_reports ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
-?>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    html, body { height: 100%; margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif; }
-    #map { height: 100%; width: 100%; }
-    .popup-form { display: flex; flex-direction: column; width: 200px; font-size: 14px; }
-    .popup-form input, .popup-form select, .popup-form textarea { margin-bottom: 6px; padding: 4px; width: 100%; border-radius: 4px; border: 1px solid #ccc; }
-    .popup-img { width: 180px; border-radius: 6px; margin-top: 6px; }
-    .header {
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+      transform: perspective(800px) rotateX(25deg);
+      transform-origin: center bottom;
+      box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    }
+    .legend {
       position: absolute;
-      z-index: 1000;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px 20px;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 18px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.4);
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 18px;
+      color: #333;
+    }
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.8;
+    }
+    .popup-form input,
+    .popup-form select,
+    .popup-form textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <strong>Submit Hazard Observations, Photos, or Reports</strong><br>
-    <small>Click on the map to mark and submit</small>
-  </div>
   <div id="map"></div>
 
   <script>
-    var map = L.map('map').setView([14.676, 121.0437], 11);
+    // Initialize map
+    var map = L.map('map', {
+      zoomControl: true,
+      minZoom: 5,
+      maxZoom: 18
+    }).setView([15.0, 121.0], 7);
 
-    // Base satellite and labels
+    // Satellite + labels
     var satellite = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      { attribution: 'Esri, Maxar, Earthstar Geographics' }
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Esri, Maxar, Earthstar Geographics'
+      }
     ).addTo(map);
 
     var labels = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
-      { attribution: '© OpenStreetMap, © CartoDB' }
+      'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap, © CartoDB'
+      }
     ).addTo(map);
 
-    // Add existing hazard reports
-    <?php foreach ($reports as $r): ?>
-      L.marker([<?= $r['latitude'] ?>, <?= $r['longitude'] ?>])
-        .addTo(map)
-        .bindPopup(`
-          <b><?= htmlspecialchars($r['hazard_type']) ?></b><br>
-          <?= nl2br(htmlspecialchars($r['description'])) ?><br>
-          <?php if ($r['photo']): ?>
-            <img src='../../<?= $r['photo'] ?>' class='popup-img'>
-          <?php endif; ?>
-          <br><small><i>Reported on <?= $r['created_at'] ?></i></small>
-        `);
-    <?php endforeach; ?>
+    // Legend
+    var legend = L.control({ position: "bottomright" });
+    legend.onAdd = function (map) {
+      var div = L.DomUtil.create("div", "legend");
+      div.innerHTML += "<strong>Hazard Level</strong><br>";
+      div.innerHTML += '<i style="background: yellow"></i> Low<br>';
+      div.innerHTML += '<i style="background: orange"></i> Medium<br>';
+      div.innerHTML += '<i style="background: red"></i> High<br>';
+      return div;
+    };
+    legend.addTo(map);
 
-    // Click to submit hazard report
+    // Click-to-report functionality
     map.on("click", function(e) {
       var latlng = e.latlng;
-      var popupForm = `
-        <form action="" method="POST" enctype="multipart/form-data" class="popup-form">
-          <h3 style="font-size:16px;">Submit Hazard</h3>
-          <input type="hidden" name="latitude" value="${latlng.lat}">
-          <input type="hidden" name="longitude" value="${latlng.lng}">
-          <label>Type:</label>
-          <select name="hazard_type" required>
-            <option value="Flood">Flood</option>
-            <option value="Landslide">Landslide</option>
-            <option value="Storm Surge">Storm Surge</option>
-            <option value="Fire">Fire</option>
-            <option value="Earthquake">Earthquake</option>
+      var popupContent = `
+        <div class="popup-form">
+          <h4>Submit Hazard Observation</h4>
+          <label>Hazard Type:</label>
+          <select id="hazardType">
+            <option>Flood</option>
+            <option>Landslide</option>
+            <option>Storm Surge</option>
+            <option>Earthquake</option>
+            <option>Fire</option>
           </select>
           <label>Description:</label>
-          <textarea name="description" rows="3" placeholder="Enter details..." required></textarea>
-          <label>Photo:</label>
-          <input type="file" name="photo" accept="image/*">
-          <button type="submit" name="submit_hazard" style="background:#007bff;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">Submit</button>
-        </form>
+          <textarea id="hazardDesc" rows="3" placeholder="Enter details..."></textarea>
+          <label>Upload Photo:</label>
+          <input type="file" id="hazardPhoto" accept="image/*" />
+          <button id="saveReport" style="margin-top:6px; background:#007bff; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">Submit Report</button>
+        </div>
       `;
-      L.popup().setLatLng(latlng).setContent(popupForm).openOn(map);
+
+      var popup = L.popup()
+        .setLatLng(latlng)
+        .setContent(popupContent)
+        .openOn(map);
+
+      // Save data locally (for demo)
+      setTimeout(() => {
+        document.getElementById("saveReport").onclick = function() {
+          const type = document.getElementById("hazardType").value;
+          const desc = document.getElementById("hazardDesc").value;
+
+          L.marker(latlng)
+            .addTo(map)
+            .bindPopup(`<b>${type}</b><br>${desc}`)
+            .openPopup();
+
+          alert("✅ Hazard report submitted successfully!");
+          map.closePopup();
+        };
+      }, 500);
     });
   </script>
 
