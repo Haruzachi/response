@@ -427,7 +427,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
   <div class="bg-white rounded-2xl w-[700px] p-0 relative shadow-2xl overflow-hidden">
 
     <!-- Modal Header -->
-    <div class="bg-gradient-to-r from-stone-950 to-blue-800 text-white px-6 py-4 flex justify-between items-center">
+    <div class="bg-gradient-to-r from-stone-950 to-green-800 text-white px-6 py-4 flex justify-between items-center">
       <h2 class="text-xl font-semibold">--// Your Profile //--</h2>
       <button id="closeProfileModal" class="text-white hover:text-gray-200 text-2xl">&times;</button>
     </div>
@@ -487,7 +487,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 
             <button 
               type="submit" 
-              class="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
+              class="w-full bg-blue-600 text-white py-2 rounded-lg shadow hover:bg-green-700 transition duration-200"
             >
               Save Changes
             </button>
