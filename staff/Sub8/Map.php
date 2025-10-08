@@ -314,6 +314,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
     #map {
       height: 100%;
       width: 100%;
+      transform: perspective(800px) rotateX(25deg);
       transform-origin: center bottom;
       border-radius: 10px;
       box-shadow: 0 0 40px rgba(0,0,0,0.6);
@@ -349,12 +350,22 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       maxZoom: 18
     }).setView([15.0, 121.0], 7);
 
-    // Esri Satellite Base Map (for realistic terrain)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Esri, Maxar, Earthstar Geographics'
-    }).addTo(map);
+    // 1️⃣ Satellite base layer
+    var satellite = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Esri, Maxar, Earthstar Geographics'
+      }
+    ).addTo(map);
 
-    // Add Hazard Zones (custom colored polygons)
+    // 2️⃣ Labels overlay (roads, cities, etc.)
+    var labels = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap, © CartoDB',
+        pane: 'overlayPane'
+      }
+    ).addTo(map);
+
+    // 3️⃣ Hazard Zones (sample demo)
     var lowHazard = L.polygon([
       [14.8, 120.9],
       [14.9, 121.1],
@@ -376,7 +387,7 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
       [11.0, 125.1]
     ], { color: "red", fillColor: "red", fillOpacity: 0.5 }).addTo(map).bindPopup("High Hazard Zone");
 
-    // Add Legend
+    // 4️⃣ Legend
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function (map) {
       var div = L.DomUtil.create("div", "legend");
