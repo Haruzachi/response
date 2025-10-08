@@ -302,57 +302,8 @@ $feedbacks = $query->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!---============================== DASHBOARD ==============================--->
- <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
- 
-  <section id="hazard-report" class="py-16 bg-stone-900 text-center">
-  <h2 class="text-3xl font-bold mb-6 text-white">Submit Hazard Observation</h2>
-  <p class="text-gray-300 mb-8 max-w-xl mx-auto">
-    Click anywhere on the map to mark a hazard location and submit your observation.
-  </p>
-  <div id="map" class="mx-auto max-w-5xl rounded-xl overflow-hidden"></div>
-</section>
-
-<script>
-  var map = L.map('map').setView([14.676, 121.0437], 12); // Default: Quezon City
-
-  // Base satellite + labels
-  var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Esri, Maxar, Earthstar Geographics'
-  }).addTo(map);
-
-  var labels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap, © CartoDB'
-  }).addTo(map);
-
-  // Click event for hazard submission
-  map.on("click", function(e) {
-    var latlng = e.latlng;
-    var popupForm = `
-      <form action="" method="POST" enctype="multipart/form-data" class="popup-form">
-        <h3 class="font-semibold mb-1">Submit Hazard Observation</h3>
-        <input type="hidden" name="latitude" value="${latlng.lat}">
-        <input type="hidden" name="longitude" value="${latlng.lng}">
-        <label>Hazard Type:</label>
-        <select name="hazard_type" required>
-          <option value="Flood">Flood</option>
-          <option value="Landslide">Landslide</option>
-          <option value="Storm Surge">Storm Surge</option>
-          <option value="Fire">Fire</option>
-          <option value="Earthquake">Earthquake</option>
-        </select>
-        <label>Description:</label>
-        <textarea name="description" rows="3" required placeholder="Enter details..."></textarea>
-        <label>Photo:</label>
-        <input type="file" name="photo" accept="image/*">
-        <button type="submit" name="submit_hazard" style="margin-top:6px; background:#007bff; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">Submit</button>
-      </form>
-    `;
-    L.popup().setLatLng(latlng).setContent(popupForm).openOn(map);
-  });
-</script>
-
-<?php
-// Handle hazard submission
+<? 
+// Handle new hazard submission
 if (isset($_POST['submit_hazard'])) {
   $lat = $_POST['latitude'];
   $lng = $_POST['longitude'];
@@ -362,7 +313,7 @@ if (isset($_POST['submit_hazard'])) {
 
   // Upload photo if exists
   if (!empty($_FILES['photo']['name'])) {
-    $targetDir = "../uploads/";
+    $targetDir = "../../uploads/";
     if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
     $fileName = time() . "_" . basename($_FILES["photo"]["name"]);
     $targetFile = $targetDir . $fileName;
@@ -371,13 +322,99 @@ if (isset($_POST['submit_hazard'])) {
     }
   }
 
-  // Insert into DB
+  // Insert into database
   $stmt = $conn->prepare("INSERT INTO hazard_reports (latitude, longitude, hazard_type, description, photo) VALUES (?, ?, ?, ?, ?)");
   $stmt->execute([$lat, $lng, $type, $desc, $photoPath]);
-
-  echo "<script>alert('✅ Hazard report submitted successfully!');</script>";
 }
+
+// Fetch all existing reports
+$reports = $conn->query("SELECT * FROM hazard_reports ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    html, body { height: 100%; margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif; }
+    #map { height: 100%; width: 100%; }
+    .popup-form { display: flex; flex-direction: column; width: 200px; font-size: 14px; }
+    .popup-form input, .popup-form select, .popup-form textarea { margin-bottom: 6px; padding: 4px; width: 100%; border-radius: 4px; border: 1px solid #ccc; }
+    .popup-img { width: 180px; border-radius: 6px; margin-top: 6px; }
+    .header {
+      position: absolute;
+      z-index: 1000;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <strong>Submit Hazard Observations, Photos, or Reports</strong><br>
+    <small>Click on the map to mark and submit</small>
+  </div>
+  <div id="map"></div>
+
+  <script>
+    var map = L.map('map').setView([14.676, 121.0437], 11);
+
+    // Base satellite and labels
+    var satellite = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { attribution: 'Esri, Maxar, Earthstar Geographics' }
+    ).addTo(map);
+
+    var labels = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
+      { attribution: '© OpenStreetMap, © CartoDB' }
+    ).addTo(map);
+
+    // Add existing hazard reports
+    <?php foreach ($reports as $r): ?>
+      L.marker([<?= $r['latitude'] ?>, <?= $r['longitude'] ?>])
+        .addTo(map)
+        .bindPopup(`
+          <b><?= htmlspecialchars($r['hazard_type']) ?></b><br>
+          <?= nl2br(htmlspecialchars($r['description'])) ?><br>
+          <?php if ($r['photo']): ?>
+            <img src='../../<?= $r['photo'] ?>' class='popup-img'>
+          <?php endif; ?>
+          <br><small><i>Reported on <?= $r['created_at'] ?></i></small>
+        `);
+    <?php endforeach; ?>
+
+    // Click to submit hazard report
+    map.on("click", function(e) {
+      var latlng = e.latlng;
+      var popupForm = `
+        <form action="" method="POST" enctype="multipart/form-data" class="popup-form">
+          <h3 style="font-size:16px;">Submit Hazard</h3>
+          <input type="hidden" name="latitude" value="${latlng.lat}">
+          <input type="hidden" name="longitude" value="${latlng.lng}">
+          <label>Type:</label>
+          <select name="hazard_type" required>
+            <option value="Flood">Flood</option>
+            <option value="Landslide">Landslide</option>
+            <option value="Storm Surge">Storm Surge</option>
+            <option value="Fire">Fire</option>
+            <option value="Earthquake">Earthquake</option>
+          </select>
+          <label>Description:</label>
+          <textarea name="description" rows="3" placeholder="Enter details..." required></textarea>
+          <label>Photo:</label>
+          <input type="file" name="photo" accept="image/*">
+          <button type="submit" name="submit_hazard" style="background:#007bff;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">Submit</button>
+        </form>
+      `;
+      L.popup().setLatLng(latlng).setContent(popupForm).openOn(map);
+    });
+  </script>
 
   </main>
   <!---============================== MODALS ==============================--->
