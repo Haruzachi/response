@@ -160,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 
   <!---============================== MAIN CONTENT ==============================--->
   <main class="flex-1 pt-24">
-<form id="home" action="map.php" method="get" class="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
+<form id="home" action="map.php" method="get" class="relative min-h-screen flex items-center justify-center text-black bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
   
 <style>
     .home form{
