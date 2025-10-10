@@ -160,8 +160,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 
   <!---============================== MAIN CONTENT ==============================--->
   <main class="flex-1 pt-24">
-<form id="home" class="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
+<form id="home" action="map.php" method="get" class="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
   
+<style>
+    form {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 300px;
+    }
+    button {
+      background: #28a745;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
   <!-- Background Animated Circles -->
   <div class="absolute inset-0">
     <!-- Large glowing circle -->
@@ -185,10 +208,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
     <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
       An integrated system designed to improve emergency response times and ensure effective coordination among responders.
     </p>
-     <form action="map.php" method="get">
     <input type="text" name="location" placeholder="Search location..." required>
     <button type="submit">Search</button>
-  </form>
   </div>
   </form>
  
