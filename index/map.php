@@ -7,64 +7,70 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     html, body, #map { height: 100%; margin: 0; }
+    body { background: #000; }
   </style>
 </head>
 <body>
 <div id="map"></div>
 
 <script>
-  // Define Philippines bounds (southwest and northeast corners)
+  // Define the Philippines bounds
   const philippinesBounds = L.latLngBounds(
-    [4.2158, 116.1474], // Southwest
-    [21.3210, 126.8070] // Northeast
+    [4.2158, 116.1474],  // Southwest
+    [21.3210, 126.8070]  // Northeast
   );
 
-  // Initialize the map with bounds
+  // Initialize map centered on the Philippines
   const map = L.map('map', {
     zoomAnimation: true,
     fadeAnimation: true,
-    maxBounds: philippinesBounds, // restrict view to PH
-    maxBoundsViscosity: 1.0, // prevent moving out of bounds
-  }).setView([12.8797, 121.7740], 6); // Center of the Philippines
+    zoomSnap: 0.25,          // smoother zoom increments
+    zoomDelta: 0.5,          // smaller zoom jumps
+    maxBounds: philippinesBounds,
+    maxBoundsViscosity: 1.0  // prevents panning outside PH
+  }).setView([12.8797, 121.7740], 6); // Center of PH
 
-  // Add OpenStreetMap layer
+  // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
+    minZoom: 5,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Get search term from URL
+  // Read search query
   const params = new URLSearchParams(window.location.search);
   const q = params.get('location');
 
   if (!q) {
-    alert("No search term provided.");
+    console.log("No search term provided.");
   } else {
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(q)}`)
-      .then(r => r.json())
+      .then(res => res.json())
       .then(data => {
-        if (data.length) {
+        if (data.length > 0) {
           const { lat, lon, display_name } = data[0];
-          const targetLatLng = L.latLng(lat, lon);
+          const target = L.latLng(lat, lon);
 
-          // Smooth zoom to location
-          map.flyTo(targetLatLng, 17, {
+          // Smooth zoom and pan
+          map.flyTo(target, 16, {
             animate: true,
-            duration: 2
+            duration: 1.5, // smooth and not laggy
+            easeLinearity: 0.25
           });
 
-          // Add marker after zoom animation
+          // Add marker slightly after movement starts
           setTimeout(() => {
-            L.marker(targetLatLng)
-              .addTo(map)
-              .bindPopup(`<b>${display_name}</b>`)
-              .openPopup();
-          }, 1500);
+            const marker = L.marker(target).addTo(map);
+            marker.bindPopup(`<b>${display_name}</b>`).openPopup();
+          }, 1200);
         } else {
           alert("No matching location found in the Philippines for: " + q);
         }
       })
-      .catch(e => alert("Error fetching location data: " + e));
+      .catch(err => {
+        console.error(err);
+        alert("Error fetching location data.");
+      });
   }
 </script>
 </body>
