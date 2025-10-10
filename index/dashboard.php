@@ -163,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 <form id="home" action="map.php" method="get" class="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
   
 <style>
-    form {
+    .home form{
       background: #222;
       padding: 20px;
       border-radius: 10px;
