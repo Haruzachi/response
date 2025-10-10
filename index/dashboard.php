@@ -185,10 +185,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
     <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
       An integrated system designed to improve emergency response times and ensure effective coordination among responders.
     </p>
-    <a href="#about" 
-       class="hover-btn px-6 py-3 bg-blue-600 rounded-lg text-white font-medium hover:bg-blue-700 shadow-md transition transform hover:scale-105">
-      Learn More About Us
-    </a>
+     <form action="map.php" method="get">
+    <input type="text" name="location" placeholder="Search location..." required>
+    <button type="submit">Search</button>
+  </form>
   </div>
   </form>
  
