@@ -24,22 +24,21 @@
   <div id="map"></div>
 
   <script>
-    // Initialize the map centered around Manila by default
-    var map = L.map('map').setView([14.5995, 120.9842], 12);
+    // Initialize the map (start neutral)
+    var map = L.map('map').setView([0, 0], 2);
 
-    // Add OpenStreetMap tiles
+    // Add OpenStreetMap layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Get the "location" parameter from the URL
+    // Get the searched location from the URL
     const urlParams = new URLSearchParams(window.location.search);
     const location = urlParams.get('location');
 
-    // If a location was searched from dashboard.php
+    // If there’s a search query (from dashboard.php)
     if (location) {
-      // Use OpenStreetMap Nominatim to find the coordinates
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
         .then(res => res.json())
         .then(data => {
@@ -48,20 +47,22 @@
             const lon = parseFloat(data[0].lon);
             const name = data[0].display_name;
 
-            // Center and zoom to the location
+            // Move the map to the searched location and zoom in
             map.setView([lat, lon], 17);
 
-            // Add marker
+            // Add a marker to the exact location
             const marker = L.marker([lat, lon]).addTo(map);
             marker.bindPopup(`<b>${name}</b>`).openPopup();
           } else {
-            alert("Location not found!");
+            alert("No matching location found for: " + location);
           }
         })
         .catch(err => {
           console.error("Error fetching location:", err);
-          alert("Error fetching location details.");
+          alert("Unable to fetch location data.");
         });
+    } else {
+      alert("No location provided in the search.");
     }
   </script>
 </body>
