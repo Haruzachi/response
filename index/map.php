@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Map Search (Philippines)</title>
+  <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
