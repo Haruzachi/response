@@ -22,15 +22,13 @@
 
   // Initialize map centered on the Philippines
   const map = L.map('map', {
-    zoomAnimation: true,
-    fadeAnimation: true,
-    zoomSnap: 0.25,          // smoother zoom increments
-    zoomDelta: 0.5,          // smaller zoom jumps
+    zoomAnimation: false,
+    fadeAnimation: false,
     maxBounds: philippinesBounds,
-    maxBoundsViscosity: 1.0  // prevents panning outside PH
+    maxBoundsViscosity: 1.0
   }).setView([12.8797, 121.7740], 6); // Center of PH
 
-  // Add OpenStreetMap tiles
+  // Add OpenStreetMap layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     minZoom: 5,
@@ -51,18 +49,12 @@
           const { lat, lon, display_name } = data[0];
           const target = L.latLng(lat, lon);
 
-          // Smooth zoom and pan
-          map.flyTo(target, 16, {
-            animate: true,
-            duration: 1.5, // smooth and not laggy
-            easeLinearity: 0.25
-          });
+          // Instantly move and zoom to location
+          map.setView(target, 16);
 
-          // Add marker slightly after movement starts
-          setTimeout(() => {
-            const marker = L.marker(target).addTo(map);
-            marker.bindPopup(`<b>${display_name}</b>`).openPopup();
-          }, 1200);
+          // Add marker immediately
+          const marker = L.marker(target).addTo(map);
+          marker.bindPopup(`<b>${display_name}</b>`).openPopup();
         } else {
           alert("No matching location found in the Philippines for: " + q);
         }
