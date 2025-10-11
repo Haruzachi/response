@@ -16,17 +16,18 @@
       background: #000;
       color: #fff;
       display: flex;
+      flex-direction: row-reverse; /* ✅ Sidebar now on the right */
       overflow: hidden;
     }
 
-    /* MAP ON LEFT */
+    /* MAP */
     #map {
       flex: 1;
       height: 100%;
       width: 100%;
     }
 
-    /* SIDEBAR ON RIGHT */
+    /* SIDEBAR */
     #sidebar {
       width: 350px;
       background: rgba(20, 20, 20, 0.95);
@@ -154,7 +155,7 @@
 
     let marker;
 
-    // Function to search a location
+    // Function to search location
     function searchLocation(location) {
       if (!location) return alert("Please enter a location.");
 
@@ -165,16 +166,14 @@
             const { lat, lon, display_name } = data[0];
             const target = L.latLng(lat, lon);
 
-            // Regular zoom animation (not smooth fly)
             map.setView(target, 16, { animate: true });
 
             if (marker) map.removeLayer(marker);
             marker = L.marker(target).addTo(map);
             marker.bindPopup(`<b>${display_name}</b>`).openPopup();
 
-            // Update sidebar info
             document.getElementById('locName').innerText = display_name;
-            document.getElementById('status').innerText = "Location found and marked on the map.";
+            document.getElementById('status').innerText = "Location found and marked.";
           } else {
             alert("No matching location found in the Philippines for: " + location);
             document.getElementById('status').innerText = "No matching location found.";
@@ -193,7 +192,7 @@
       searchLocation(location);
     });
 
-    // Auto-load search if parameter in URL
+    // Auto-load search if URL parameter exists
     const params = new URLSearchParams(window.location.search);
     const q = params.get('location');
     if (q) {
