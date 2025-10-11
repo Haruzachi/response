@@ -2,36 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>QCProtektado - Hazard Assessment Map</title>
-  <link rel="icon" type="image/x-icon" href="../img/Logocircle.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <title>QCprotektado - Emergency Response System</title>
+  <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    html, body { height: 100%; margin: 0; background: #000; font-family: Arial, sans-serif; }
-    #map { height: 100%; width: 100%; }
+    html, body, #map { height: 100%; margin: 0; }
+    body { background: #000; overflow: hidden; }
 
-    /* Sidebar Styling (Right) */
+    /* Right sidebar overlay */
     #sidebar {
       position: absolute;
       top: 0;
       right: 0;
-      width: 420px;
+      width: 430px;
       height: 100%;
-      background: rgba(0,0,0,0.88);
+      background: rgba(0, 0, 0, 0.85);
       color: #fff;
       z-index: 999;
-      padding: 20px 25px;
+      padding: 20px;
+      box-shadow: -3px 0 10px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
-      box-shadow: -3px 0 10px rgba(0,0,0,0.5);
+      justify-content: space-between;
     }
 
-    #sidebar h1 {
-      font-size: 18px;
-      margin: 0 0 10px;
-      text-align: center;
+    #sidebar h2 {
+      margin-top: 0;
+      font-size: 20px;
       color: #00c3ff;
+      text-align: center;
     }
 
     #sidebar input {
@@ -51,153 +51,102 @@
       border: none;
       border-radius: 5px;
       color: #fff;
-      font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
     }
-    #sidebar button:hover { background: #009edb; }
 
-    .hazard-box {
-      background: #111;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 15px;
+    #sidebar button:hover {
+      background: #009edb;
     }
-
-    .hazard-box h3 {
-      margin: 0;
-      font-size: 15px;
-      color: #00c3ff;
-    }
-
-    .hazard-box p {
-      margin: 5px 0 0;
-      font-size: 13px;
-    }
-
-    .low { color: #1eff00; }
-    .medium { color: #ffb300; }
-    .high { color: #ff4242; }
 
     #footer {
-      margin-top: auto;
       text-align: center;
       font-size: 12px;
       opacity: 0.6;
-      padding-top: 15px;
     }
   </style>
 </head>
 <body>
-
 <div id="map"></div>
 
-<!-- Sidebar -->
+<!-- Sidebar (Right Side) -->
 <div id="sidebar">
   <div>
-    <h1>QCProtektado Hazard Map</h1>
-    <input type="text" id="searchBox" placeholder="Search location...">
-    <button onclick="manualSearch()">Search</button>
-
-    <p style="font-size:12px;opacity:0.7;margin-top:8px;">💡 Tip: Drag the pin to update hazard level in that area.</p>
-
-    <div class="hazard-box">
-      <h3>Flood Hazard Level</h3>
-      <p id="floodLevel" class="low">LOW</p>
-    </div>
-
-    <div class="hazard-box">
-      <h3>Landslide Hazard Level</h3>
-      <p id="landslideLevel" class="low">LITTLE TO NONE</p>
-    </div>
-
-    <div class="hazard-box">
-      <h3>Storm Surge Hazard Level</h3>
-      <p id="stormLevel" class="low">LITTLE TO NONE</p>
-    </div>
+    <h2>Search Location</h2>
+    <input type="text" id="searchBox" placeholder="Enter location..." />
+    <button onclick="manualSearch()">Find</button>
   </div>
-
   <div id="footer">
-    QCProtektado © 2025<br>
-    Simulated Hazard Map Prototype
+    QCProtektado © 2025
   </div>
 </div>
 
 <script>
-  // Map bounds limited to Philippines
-  const phBounds = L.latLngBounds([4.2158, 116.1474], [21.3210, 126.8070]);
+  // Define the Philippines bounds
+  const philippinesBounds = L.latLngBounds(
+    [4.2158, 116.1474],  // Southwest
+    [21.3210, 126.8070]  // Northeast
+  );
 
+  // Initialize map centered on the Philippines
   const map = L.map('map', {
     zoomAnimation: true,
     fadeAnimation: true,
-    maxBounds: phBounds,
+    maxBounds: philippinesBounds,
     maxBoundsViscosity: 1.0
-  }).setView([12.8797, 121.7740], 6);
+  }).setView([12.8797, 121.7740], 6); // Center of PH
 
-  // Base Map Layer
+  // Add OpenStreetMap layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     minZoom: 5,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Hazard level colors (demo overlay)
-  const floodOverlay = L.tileLayer('https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {opacity: 0.3}).addTo(map);
+  // Read search query from URL
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('location');
 
-  // Marker
-  let marker = L.marker([12.8797, 121.7740], { draggable: true }).addTo(map);
-  marker.bindPopup("Drag me to check hazard levels.").openPopup();
-
-  // Random hazard generator (for demo)
-  function randomHazard() {
-    const levels = ["LOW", "MEDIUM", "HIGH"];
-    return levels[Math.floor(Math.random() * levels.length)];
+  if (!q) {
+    console.log("No search term provided.");
+  } else {
+    fetchLocation(q);
   }
 
-  function updateHazardLevels() {
-    const flood = randomHazard();
-    const land = randomHazard();
-    const storm = randomHazard();
-
-    setHazard("floodLevel", flood);
-    setHazard("landslideLevel", land);
-    setHazard("stormLevel", storm);
-  }
-
-  function setHazard(id, level) {
-    const el = document.getElementById(id);
-    el.textContent = level;
-    el.className = level === "HIGH" ? "high" : level === "MEDIUM" ? "medium" : "low";
-  }
-
-  // When marker is dragged
-  marker.on('dragend', function(e) {
-    const pos = e.target.getLatLng();
-    map.panTo(pos);
-    updateHazardLevels();
-  });
-
-  // Handle manual search
+  // Function to handle manual search from sidebar
   function manualSearch() {
-    const q = document.getElementById('searchBox').value.trim();
-    if (!q) return alert("Please enter a location.");
-
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(q)}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.length === 0) return alert("No result found in the Philippines.");
-        const { lat, lon, display_name } = data[0];
-        const loc = [parseFloat(lat), parseFloat(lon)];
-        map.flyTo(loc, 15, { animate: true, duration: 1.5 });
-        marker.setLatLng(loc).bindPopup(`<b>${display_name}</b>`).openPopup();
-        updateHazardLevels();
-      })
-      .catch(() => alert("Error fetching location."));
+    const input = document.getElementById('searchBox').value.trim();
+    if (input) {
+      fetchLocation(input);
+    } else {
+      alert("Please enter a location.");
+    }
   }
 
-  // Initial hazard data
-  updateHazardLevels();
-</script>
+  // Fetch and zoom to location
+  function fetchLocation(query) {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          const { lat, lon, display_name } = data[0];
+          const target = L.latLng(lat, lon);
 
+          // Regular zoom animation
+          map.setView(target, 16, { animate: true });
+
+          // Add marker
+          const marker = L.marker(target).addTo(map);
+          marker.bindPopup(`<b>${display_name}</b>`).openPopup();
+        } else {
+          alert("No matching location found in the Philippines for: " + query);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error fetching location data.");
+      });
+  }
+</script>
 </body>
 </html>
