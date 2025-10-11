@@ -7,138 +7,91 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    * { box-sizing: border-box; }
-
     html, body {
       height: 100%;
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      color: #fff;
-      display: flex;
-      flex-direction: row-reverse; /* ✅ Sidebar now on the right */
       overflow: hidden;
+      background: #000;
     }
 
-    /* MAP */
     #map {
-      flex: 1;
       height: 100%;
       width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
     }
 
-    /* SIDEBAR */
+    /* Right Sidebar */
     #sidebar {
-      width: 350px;
-      background: rgba(20, 20, 20, 0.95);
-      border-left: 2px solid #00c8ff;
+      position: absolute;
+      top: 0;
+      right: 0; /* RIGHT SIDE */
+      width: 280px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
       padding: 20px;
+      box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
+      justify-content: space-between;
     }
 
     #sidebar h2 {
-      color: #00c8ff;
+      margin: 0 0 15px 0;
+      font-size: 20px;
+      color: #00c3ff;
       text-align: center;
-      margin-bottom: 20px;
     }
 
-    .info-box {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 15px;
+    #sidebar input {
+      width: 100%;
+      padding: 10px;
       margin-bottom: 15px;
-    }
-
-    .info-box h3 {
-      color: #ffcc00;
-      margin: 0 0 10px;
-    }
-
-    .info-box p {
-      margin: 6px 0;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    #search-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 15px;
-    }
-
-    #search-input {
-      flex: 1;
-      padding: 8px;
       border: none;
       border-radius: 5px;
-      outline: none;
+      background: #222;
+      color: #fff;
     }
 
-    #search-btn {
-      background: #00c8ff;
-      color: #000;
-      font-weight: bold;
+    #sidebar button {
+      padding: 10px;
+      background: #00c3ff;
+      color: #fff;
       border: none;
       border-radius: 5px;
-      padding: 8px 12px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
-    #search-btn:hover {
-      background: #00a6d6;
-    }
-
-    footer {
-      font-size: 12px;
-      color: #888;
-      text-align: center;
-      margin-top: auto;
-      padding-top: 10px;
-      border-top: 1px solid #333;
+    #sidebar button:hover {
+      background: #009edb;
     }
   </style>
 </head>
 <body>
-
-  <!-- MAP -->
   <div id="map"></div>
 
-  <!-- SIDEBAR -->
   <div id="sidebar">
-    <h2>QCProtektado</h2>
-
-    <div id="search-bar">
-      <input type="text" id="search-input" placeholder="Search location...">
-      <button id="search-btn">Search</button>
+    <div>
+      <h2>Search Location</h2>
+      <input type="text" id="searchBox" placeholder="Enter location..." />
+      <button onclick="searchLocation()">Find</button>
     </div>
-
-    <div class="info-box">
-      <h3>Location Information</h3>
-      <p><b>Location:</b> <span id="locName">No location yet</span></p>
-      <p><b>Status:</b> <span id="status">Waiting for input...</span></p>
+    <div style="text-align:center; font-size:12px; opacity:0.7;">
+      QCProtektado © 2025
     </div>
-
-    <div class="info-box">
-      <h3>Hazard Overview</h3>
-      <p>Flood Risk: <span style="color:#0f0;">Low</span></p>
-      <p>Landslide Risk: <span style="color:#0f0;">Low</span></p>
-      <p>Storm Surge: <span style="color:#0f0;">None</span></p>
-    </div>
-
-    <footer>© QCProtektado 2025</footer>
   </div>
 
   <script>
-    // Define the Philippines bounds
     const philippinesBounds = L.latLngBounds(
       [4.2158, 116.1474],
       [21.3210, 126.8070]
     );
 
-    // Initialize map centered on the Philippines
     const map = L.map('map', {
       zoomAnimation: true,
       fadeAnimation: true,
@@ -146,58 +99,35 @@
       maxBoundsViscosity: 1.0
     }).setView([12.8797, 121.7740], 6);
 
-    // Add OpenStreetMap layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       minZoom: 5,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    let marker;
+    function searchLocation() {
+      const q = document.getElementById('searchBox').value.trim();
+      if (!q) {
+        alert("Please enter a location.");
+        return;
+      }
 
-    // Function to search location
-    function searchLocation(location) {
-      if (!location) return alert("Please enter a location.");
-
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(location)}`)
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(q)}`)
         .then(res => res.json())
         .then(data => {
           if (data.length > 0) {
             const { lat, lon, display_name } = data[0];
             const target = L.latLng(lat, lon);
-
             map.setView(target, 16, { animate: true });
-
-            if (marker) map.removeLayer(marker);
-            marker = L.marker(target).addTo(map);
-            marker.bindPopup(`<b>${display_name}</b>`).openPopup();
-
-            document.getElementById('locName').innerText = display_name;
-            document.getElementById('status').innerText = "Location found and marked.";
+            L.marker(target).addTo(map).bindPopup(`<b>${display_name}</b>`).openPopup();
           } else {
-            alert("No matching location found in the Philippines for: " + location);
-            document.getElementById('status').innerText = "No matching location found.";
+            alert("No matching location found in the Philippines for: " + q);
           }
         })
         .catch(err => {
           console.error(err);
           alert("Error fetching location data.");
-          document.getElementById('status').innerText = "Error fetching location data.";
         });
-    }
-
-    // Click search
-    document.getElementById('search-btn').addEventListener('click', () => {
-      const location = document.getElementById('search-input').value.trim();
-      searchLocation(location);
-    });
-
-    // Auto-load search if URL parameter exists
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get('location');
-    if (q) {
-      document.getElementById('search-input').value = q;
-      searchLocation(q);
     }
   </script>
 </body>
