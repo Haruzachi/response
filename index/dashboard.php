@@ -234,7 +234,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 
     <button 
       type="submit" 
-      class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition"
+      class="w-full bg-green-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition"
     >
       Submit Feedback
     </button>
