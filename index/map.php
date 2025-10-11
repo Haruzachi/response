@@ -22,8 +22,8 @@
 
   // Initialize map centered on the Philippines
   const map = L.map('map', {
-    zoomAnimation: false,
-    fadeAnimation: false,
+    zoomAnimation: true,     // enable default smooth zoom
+    fadeAnimation: true,     // enable fade effect
     maxBounds: philippinesBounds,
     maxBoundsViscosity: 1.0
   }).setView([12.8797, 121.7740], 6); // Center of PH
@@ -49,10 +49,10 @@
           const { lat, lon, display_name } = data[0];
           const target = L.latLng(lat, lon);
 
-          // Instantly move and zoom to location
-          map.setView(target, 16);
+          // Regular zoom animation (not fly, not instant)
+          map.setView(target, 16, { animate: true });
 
-          // Add marker immediately
+          // Add marker right after zoom
           const marker = L.marker(target).addTo(map);
           marker.bindPopup(`<b>${display_name}</b>`).openPopup();
         } else {
