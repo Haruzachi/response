@@ -162,54 +162,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <main class="flex-1 pt-24">
 <form id="home" action="map.php" method="get" class="relative min-h-screen flex items-center justify-center text-black bg-gradient-to-b from-stone-800 to-sky-800 overflow-hidden">
   
-<style>
-    .home form{
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      display: flex;
-      gap: 10px;
-    }
-    input {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      width: 300px;
-    }
-    button {
-      background: #28a745;
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
-  <!-- Background Animated Circles -->
-  <div class="absolute inset-0">
-    <!-- Large glowing circle -->
-    <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-    
-    <!-- Medium glowing circle -->
-    <div class="absolute bottom-20 right-16 w-60 h-60 bg-orange-500/20 rounded-full blur-2xl animate-pulse delay-150"></div>
-
-    <!-- Small glowing circle -->
-    <div class="absolute top-40 right-32 w-40 h-40 bg-blue-400/10 rounded-full blur-xl animate-pulse delay-300"></div>
+ <!-- Background map -->
+  <div class="absolute inset-0 z-0">
+    <img src="../img/floodmap.png" alt="Hazard Map Background" class="w-full h-full object-cover opacity-70">
   </div>
 
-  <!-- Background Pattern Dots -->
-  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[length:40px_40px]"></div>
+  <!-- Overlay Container -->
+  <div class="relative z-10 flex items-center justify-center min-h-screen text-black">
+    <div class="bg-white bg-opacity-90 shadow-2xl rounded-2xl p-10 text-center max-w-md w-[90%] backdrop-blur-md">
 
-  <!-- Foreground Content -->
-  <div class="relative z-10 text-center px-6">
-    <h1 class="text-4xl md:text-5xl font-bold mb-6 text-white drop-shadow-lg">
-      Emergency Response System in Quezon City
-    </h1>
-    <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
-      An integrated system designed to improve emergency response times and ensure effective coordination among responders.
-    </p>
-    <input type="text" name="location" placeholder="Search location..." required>
-    <button type="submit">Search</button>
+      <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Know Your Hazards</h1>
+      <p class="text-gray-600 mb-6 leading-relaxed">
+        Assess how likely you are to be affected by <span class="font-semibold">floods</span>, 
+        <span class="font-semibold">landslides</span>, and 
+        <span class="font-semibold">storm surges</span> and what you can do about it.
+      </p>
+
+      <!-- Search form -->
+      <form action="map.php" method="get" class="flex items-center border border-gray-300 rounded-full overflow-hidden mb-8">
+        <input 
+          type="text" 
+          name="location" 
+          placeholder="Search Location" 
+          required
+          class="flex-1 px-4 py-3 focus:outline-none text-gray-700"
+        >
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3">
+          🔍
+        </button>
+      </form>
+
+      <!-- Weather Update Section -->
+      <h2 class="text-lg font-semibold text-gray-800 mb-3">Check Weather Updates</h2>
+      <span class="text-xs text-blue-500 font-medium mb-4 block">Both are still in BETA 🔴</span>
+
+      <div class="flex justify-center space-x-8 mb-6">
+        <div class="flex flex-col items-center">
+          <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg">
+            ☔
+          </div>
+          <span class="mt-2 text-gray-700 font-medium">Rainfall</span>
+        </div>
+
+        <div class="flex flex-col items-center">
+          <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg">
+            🌀
+          </div>
+          <span class="mt-2 text-gray-700 font-medium">Typhoon Track</span>
+        </div>
+      </div>
+
+      <p class="text-sm text-gray-500">More hazard insights coming soon!</p>
+    </div>
   </div>
   </form>
  
