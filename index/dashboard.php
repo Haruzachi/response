@@ -191,27 +191,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
         </button>
       </form>
 
-      <!-- Weather Update Section -->
-      <h2 class="text-lg font-semibold text-gray-800 mb-3">Check Weather Updates</h2>
-      <span class="text-xs text-blue-500 font-medium mb-4 block">Both are still in BETA 🔴</span>
-
-      <div class="flex justify-center space-x-8 mb-6">
-        <div class="flex flex-col items-center">
-          <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg">
-            ☔
-          </div>
-          <span class="mt-2 text-gray-700 font-medium">Rainfall</span>
-        </div>
-
-        <div class="flex flex-col items-center">
-          <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg">
-            🌀
-          </div>
-          <span class="mt-2 text-gray-700 font-medium">Typhoon Track</span>
-        </div>
-      </div>
-
-      <p class="text-sm text-gray-500">More hazard insights coming soon!</p>
     </div>
   </div>
 
