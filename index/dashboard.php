@@ -170,13 +170,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <div class="relative z-10 flex items-center justify-center min-h-screen text-black">
     <div class="bg-white bg-opacity-90 shadow-2xl rounded-2xl p-10 text-center max-w-md w-[90%] backdrop-blur-md">
 
-      <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Know Your Hazards</h1>
+      <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Hazard Mapping</h1>
       <p class="text-gray-600 mb-6 leading-relaxed">
-        Assess how likely you are to be affected by <span class="font-semibold">floods</span>, 
-        <span class="font-semibold">landslides</span>, and 
-        <span class="font-semibold">storm surges</span> and what you can do about it.
-      </p>
-
+  Know if your community is at risk of <span class="font-semibold">floods</span>, 
+  <span class="font-semibold">landslides</span>, or 
+  <span class="font-semibold">storm surges</span>. 
+  This emergency response tool uses Project NOAH insights to help keep you safe and informed.
+</p>
       <!-- Search form -->
       <form action="map.php" method="get" class="flex items-center border border-gray-300 rounded-full overflow-hidden mb-8">
         <input 
