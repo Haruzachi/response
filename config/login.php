@@ -3,6 +3,14 @@ require_once "../config/db.php";
 session_start();
 
 //______________________________________________//
+// AUTO-RESET 2FA STATE IF NOT LOGGED IN
+//______________________________________________//
+if (!isset($_SESSION['user']) && isset($_SESSION['otp'])) {
+    unset($_SESSION['otp']);
+    unset($_SESSION['otp_expiry']);
+}
+
+//______________________________________________//
 // CREATE DEFAULT ADMIN, STAFF and SupAd ACCOUNTS
 //______________________________________________//
 try {
