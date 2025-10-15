@@ -6,6 +6,7 @@
   <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
   <style>
     html, body, #map {
       height: 100%;
@@ -57,7 +58,7 @@
       border: none;
       border-radius: 8px;
       width: calc(100% - 40px);
-      margin: 15px 20px 10px 20px;
+      margin: 0 20px;
       padding: 12px;
       font-size: 15px;
       font-weight: 500;
@@ -289,9 +290,10 @@
     <h2>Search Location</h2>
     <input type="text" id="searchBox" placeholder="Search location...">
     <button onclick="manualSearch()">Find</button>
+
     <a href="dashboard.php" class="home-btn">
       <i class='bx bx-home-alt'></i> Home </a>
-      
+
     <div class="info-section">
       <h3>Hazard Levels In Your Area</h3>
       <div class="hazard-box" onclick="openModal('flood')">
