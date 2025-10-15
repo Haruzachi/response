@@ -18,9 +18,12 @@
       overflow: hidden;
     }
 
-    #map { z-index: 1; }
+    /* MAP AREA */
+    #map {
+      z-index: 1;
+    }
 
-    /* Sidebar */
+    /* NOAH-style Sidebar */
     #sidebar {
       position: absolute;
       top: 0;
@@ -36,14 +39,17 @@
       box-shadow: -4px 0 15px rgba(0,0,0,0.15);
     }
 
+    /* Header style */
     #sidebar h2 {
       font-size: 18px;
       font-weight: 600;
       color: #0077ff;
+      text-align: left;
       margin: 20px;
       margin-bottom: 10px;
     }
 
+    /* Search box */
     #searchBox {
       width: calc(100% - 70px);
       margin: 0 20px 10px 20px;
@@ -51,9 +57,9 @@
       border: 1px solid #ccc;
       border-radius: 50px;
       font-size: 15px;
-      background-color: #fafafa;
       outline: none;
       transition: all 0.3s ease;
+      background-color: #fafafa;
     }
 
     #searchBox:focus {
@@ -62,6 +68,7 @@
       box-shadow: 0 0 5px rgba(0,119,255,0.3);
     }
 
+    /* Find button */
     #sidebar button {
       width: calc(100% - 40px);
       margin: 0 20px;
@@ -80,6 +87,7 @@
       background: #005fcc;
     }
 
+    /* Information Section */
     .info-section {
       padding: 15px 20px;
       border-top: 1px solid #eee;
@@ -123,6 +131,7 @@
       font-size: 12px;
     }
 
+    /* Footer */
     #footer {
       text-align: center;
       font-size: 12px;
@@ -131,7 +140,7 @@
       border-top: 1px solid #eee;
     }
 
-    /* MODAL */
+    /* MODAL STYLES */
     .modal {
       position: fixed;
       top: 0; left: 0;
@@ -144,7 +153,7 @@
     }
 
     .modal-content {
-      background: white;
+      background: #fff;
       width: 400px;
       max-height: 80vh;
       overflow-y: auto;
@@ -159,21 +168,28 @@
     }
 
     .modal-content h3 {
-      margin-top: 15px;
       color: #333;
+      margin-top: 15px;
     }
 
     .modal-content p {
       color: #444;
-      line-height: 1.5;
       font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .modal-content ul {
+      padding-left: 20px;
+      color: #444;
+      font-size: 14px;
+      line-height: 1.6;
     }
 
     .close-btn {
       background: #0077ff;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       padding: 8px 14px;
       margin-top: 15px;
       cursor: pointer;
@@ -214,7 +230,7 @@
   <div id="footer">QCProtektado © 2025</div>
 </div>
 
-<!-- MODAL -->
+<!-- HAZARD MODAL -->
 <div id="hazardModal" class="modal">
   <div class="modal-content" id="modalContent">
     <h2>Hazard Guide</h2>
@@ -224,21 +240,49 @@
 </div>
 
 <script>
+  // Define the Philippines bounds
+  const philippinesBounds = L.latLngBounds(
+    [4.2158, 116.1474],
+    [21.3210, 126.8070]
+  );
+
   // Initialize map
-  const map = L.map('map').setView([12.8797, 121.7740], 6);
+  const map = L.map('map', {
+    zoomAnimation: true,
+    fadeAnimation: true,
+    maxBounds: philippinesBounds,
+    maxBoundsViscosity: 1.0
+  }).setView([12.8797, 121.7740], 6);
+
+  // Base map layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
+    minZoom: 5,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
+  // Marker holder
   let currentMarker = null;
 
-  function manualSearch() {
-    const input = document.getElementById('searchBox').value.trim();
-    if (!input) return alert("Please enter a location.");
-    fetchLocation(input);
+  // URL search query
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('location');
+  if (q) {
+    fetchLocation(q);
+    document.getElementById('searchBox').value = q;
   }
 
+  // Manual search
+  function manualSearch() {
+    const input = document.getElementById('searchBox').value.trim();
+    if (input) {
+      fetchLocation(input);
+    } else {
+      alert("Please enter a location.");
+    }
+  }
+
+  // Fetch location and show marker
   function fetchLocation(query) {
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
       .then(res => res.json())
@@ -246,14 +290,19 @@
         if (data.length > 0) {
           const { lat, lon } = data[0];
           const target = L.latLng(lat, lon);
+
           if (currentMarker) map.removeLayer(currentMarker);
+
           currentMarker = L.marker(target).addTo(map);
           map.setView(target, 16, { animate: true });
         } else {
-          alert("No matching location found.");
+          alert("No matching location found in the Philippines for: " + query);
         }
       })
-      .catch(err => alert("Error fetching location."));
+      .catch(err => {
+        console.error(err);
+        alert("Error fetching location data.");
+      });
   }
 
   // MODAL HANDLERS
@@ -261,9 +310,9 @@
     const modal = document.getElementById('hazardModal');
     const content = document.getElementById('modalContent');
 
-    let html = "";
+    let html = '';
 
-    if (type === "flood") {
+    if (type === 'flood') {
       html = `
         <h2>Know Your Hazard: Flooding</h2>
         <p><strong>Flooding</strong> is the overflow of water from a river or another body of water due to heavy rainfall.</p>
@@ -271,11 +320,10 @@
         <ul>
           <li>Be prepared to evacuate immediately when there’s an alert for heavy rainfall.</li>
           <li>Refrain from walking through floodwater, especially without protective gear like boots.</li>
-          <li>Don’t walk or drive through moving water—it can sweep you and your car away.</li>
-          <li>Turn off all electrical appliances and LPG tanks; turn off the main power switch as needed.</li>
-        </ul>
-      `;
-    } else if (type === "landslide") {
+          <li>Don’t walk or drive through moving water. It can sweep you and your car away.</li>
+          <li>Turn off all electrical appliances and LPG tank; turn off the main power switch as needed.</li>
+        </ul>`;
+    } else if (type === 'landslide') {
       html = `
         <h2>Know Your Hazard: Landslide</h2>
         <p><strong>Landslide</strong> is the downward movement of rock, soil, or debris caused by rain, earthquakes, or human activity.</p>
@@ -285,9 +333,8 @@
           <li>Stay alert for unusual sounds like cracking or rumbling.</li>
           <li>Be ready to evacuate quickly when heavy rain persists.</li>
           <li>Stay indoors but avoid the side of the house facing the slope.</li>
-        </ul>
-      `;
-    } else if (type === "storm") {
+        </ul>`;
+    } else if (type === 'storm') {
       html = `
         <h2>Know Your Hazard: Storm Surge</h2>
         <p><strong>Storm Surge</strong> is an abnormal rise in sea level caused by a storm’s strong winds and low pressure.</p>
@@ -297,16 +344,15 @@
           <li>Move to higher ground away from coastal areas.</li>
           <li>Secure your home and disconnect electrical appliances.</li>
           <li>Do not return until officials declare it safe.</li>
-        </ul>
-      `;
+        </ul>`;
     }
 
     content.innerHTML = html + '<button class="close-btn" onclick="closeModal()">Close</button>';
-    modal.style.display = "flex";
+    modal.style.display = 'flex';
   }
 
   function closeModal() {
-    document.getElementById('hazardModal').style.display = "none";
+    document.getElementById('hazardModal').style.display = 'none';
   }
 </script>
 </body>

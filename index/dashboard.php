@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
     }
 
     section {
-      scroll-margin-top: 50px; /* Adjust based on navbar height */
+      scroll-margin-top: 100px; /* Adjust based on navbar height */
     }
 
     .blurred {
