@@ -51,9 +51,9 @@
 
     /* Search box */
     #searchBox {
-      width: calc(100% - 40px);
+      width: calc(100% - 150px);
       margin: 0 20px 10px 20px;
-      padding: 10px 10px;
+      padding: 12px 15px;
       border: 1px solid #ccc;
       border-radius: 50px;
       font-size: 15px;
