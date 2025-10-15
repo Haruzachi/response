@@ -492,20 +492,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   </div>
 </div>
 
-</body>
 
 <script>
-  // Smooth scroll and center section on click
+  // Custom smooth scroll with true centering
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
-      if (targetId.length > 1) { // Ignore links like "#"
+      if (targetId && targetId !== "#") {
         e.preventDefault();
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-          targetElement.scrollIntoView({
-            behavior: "smooth",
-            block: "center" // 👈 This centers the section vertically
+        const target = document.querySelector(targetId);
+        if (target) {
+          const navbarHeight = document.querySelector('header').offsetHeight; // Fixed header height
+          const viewportHeight = window.innerHeight;
+          const elementHeight = target.offsetHeight;
+          const elementTop = target.getBoundingClientRect().top + window.scrollY;
+
+          // Compute target scroll position so section is centered
+          const scrollTo = elementTop - (viewportHeight / 2) + (elementHeight / 2) - (navbarHeight / 2);
+
+          window.scrollTo({
+            top: scrollTo,
+            behavior: "smooth"
           });
         }
       }
@@ -513,4 +520,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   });
 </script>
 
+</body>
 </html>
