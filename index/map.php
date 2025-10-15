@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
   <style>
     html, body, #map {
       height: 100%;
@@ -48,7 +49,7 @@
       margin-bottom: 10px;
     }
 
-    /* Home button */
+    /* Home button (reduced width) */
     .home-btn {
       display: flex;
       align-items: center;
@@ -57,8 +58,8 @@
       color: white;
       border: none;
       border-radius: 8px;
-      width: calc(100% - 40px);
-      margin: 0 20px;
+      width: calc(100% - 80px); /* Reduced width */
+      margin: 0 40px;
       padding: 12px;
       font-size: 15px;
       font-weight: 500;
@@ -76,7 +77,7 @@
       background: #005fcc;
       transform: scale(1.03);
     }
-    
+
     #searchBox {
       width: calc(100% - 70px);
       margin: 0 20px 10px 20px;
@@ -164,59 +165,6 @@
       border-top: 1px solid #eee;
     }
 
-    /* Modal */
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .modal-content {
-      background: #fff;
-      width: 400px;
-      max-height: 80vh;
-      overflow-y: auto;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    }
-
-    .modal-content h2 {
-      color: #0077ff;
-      margin-top: 0;
-    }
-
-    .modal-content h3 {
-      color: #333;
-      margin-top: 15px;
-    }
-
-    .modal-content p, .modal-content ul {
-      color: #444;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .close-btn {
-      background: #0077ff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 14px;
-      margin-top: 15px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .close-btn:hover {
-      background: #005fcc;
-    }
-
     /* Map logo button */
     .map-logo {
       position: absolute;
@@ -269,6 +217,7 @@
     }
   </style>
 </head>
+
 <body>
 <div id="map"></div>
 
@@ -289,24 +238,21 @@
   <div>
     <h2>Search Location</h2>
     <input type="text" id="searchBox" placeholder="Search location...">
-    <button onclick="manualSearch()">Find</button>
 
     <a href="dashboard.php" class="home-btn">
-      <i class='bx bx-home-alt'></i> Home </a>
+      <i class='bx bx-home-alt'></i> Home
+    </a>
 
     <div class="info-section">
       <h3>Hazard Levels In Your Area</h3>
       <div class="hazard-box" onclick="openModal('flood')">
-        <span>Flood Hazard Level</span>
-        <i>LOW</i>
+        <span>Flood Hazard Level</span><i>LOW</i>
       </div>
       <div class="hazard-box" onclick="openModal('landslide')">
-        <span>Landslide Hazard Level</span>
-        <i>LOW</i>
+        <span>Landslide Hazard Level</span><i>LOW</i>
       </div>
       <div class="hazard-box" onclick="openModal('storm')">
-        <span>Storm Surge Hazard Level</span>
-        <i>LOW</i>
+        <span>Storm Surge Hazard Level</span><i>LOW</i>
       </div>
     </div>
   </div>
@@ -374,11 +320,15 @@
     document.getElementById('searchBox').value = q;
   }
 
-  function manualSearch() {
-    const input = document.getElementById('searchBox').value.trim();
-    if (input) fetchLocation(input);
-    else alert("Please enter a location.");
-  }
+  // Trigger search when pressing Enter
+  document.getElementById('searchBox').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const input = this.value.trim();
+      if (input) fetchLocation(input);
+      else alert("Please enter a location.");
+    }
+  });
 
   function fetchLocation(query) {
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
