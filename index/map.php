@@ -18,12 +18,11 @@
       overflow: hidden;
     }
 
-    /* MAP AREA */
     #map {
       z-index: 1;
     }
 
-    /* NOAH-style Sidebar */
+    /* Sidebar */
     #sidebar {
       position: absolute;
       top: 0;
@@ -39,7 +38,6 @@
       box-shadow: -4px 0 15px rgba(0,0,0,0.15);
     }
 
-    /* Header style */
     #sidebar h2 {
       font-size: 18px;
       font-weight: 600;
@@ -49,7 +47,6 @@
       margin-bottom: 10px;
     }
 
-    /* Search box */
     #searchBox {
       width: calc(100% - 70px);
       margin: 0 20px 10px 20px;
@@ -68,7 +65,6 @@
       box-shadow: 0 0 5px rgba(0,119,255,0.3);
     }
 
-    /* Find button */
     #sidebar button {
       width: calc(100% - 40px);
       margin: 0 20px;
@@ -87,7 +83,6 @@
       background: #005fcc;
     }
 
-    /* Information Section */
     .info-section {
       padding: 15px 20px;
       border-top: 1px solid #eee;
@@ -131,7 +126,6 @@
       font-size: 12px;
     }
 
-    /* Footer */
     #footer {
       text-align: center;
       font-size: 12px;
@@ -140,7 +134,7 @@
       border-top: 1px solid #eee;
     }
 
-    /* MODAL STYLES */
+    /* Modal */
     .modal {
       position: fixed;
       top: 0; left: 0;
@@ -172,14 +166,7 @@
       margin-top: 15px;
     }
 
-    .modal-content p {
-      color: #444;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .modal-content ul {
-      padding-left: 20px;
+    .modal-content p, .modal-content ul {
       color: #444;
       font-size: 14px;
       line-height: 1.6;
@@ -199,10 +186,46 @@
     .close-btn:hover {
       background: #005fcc;
     }
+
+    /* Layer switch control */
+    .map-control {
+      position: absolute;
+      top: 10px;
+      right: 360px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      padding: 6px;
+      z-index: 1000;
+    }
+
+    .map-control button {
+      background: #0077ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin: 2px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+
+    .map-control button:hover {
+      background: #005fcc;
+    }
+
   </style>
 </head>
 <body>
 <div id="map"></div>
+
+<!-- Map Layer Control -->
+<div class="map-control">
+  <button onclick="setBase('default')">Default</button>
+  <button onclick="setBase('satellite')">Satellite</button>
+  <button onclick="setBase('terrain')">Terrain</button>
+</div>
 
 <!-- Sidebar -->
 <div id="sidebar">
@@ -230,7 +253,7 @@
   <div id="footer">QCProtektado © 2025</div>
 </div>
 
-<!-- HAZARD MODAL -->
+<!-- Hazard Modal -->
 <div id="hazardModal" class="modal">
   <div class="modal-content" id="modalContent">
     <h2>Hazard Guide</h2>
@@ -240,13 +263,9 @@
 </div>
 
 <script>
-  // Define the Philippines bounds
-  const philippinesBounds = L.latLngBounds(
-    [4.2158, 116.1474],
-    [21.3210, 126.8070]
-  );
+  const philippinesBounds = L.latLngBounds([4.2158, 116.1474], [21.3210, 126.8070]);
 
-  // Initialize map
+  // Map initialization
   const map = L.map('map', {
     zoomAnimation: true,
     fadeAnimation: true,
@@ -254,14 +273,30 @@
     maxBoundsViscosity: 1.0
   }).setView([12.8797, 121.7740], 6);
 
-  // Base map layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    minZoom: 5,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  // Base layers
+  const defaultLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+  });
 
-  // Marker holder
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles &copy; Esri'
+  });
+
+  const terrainLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles &copy; Esri'
+  });
+
+  let currentBase = defaultLayer.addTo(map);
+
+  // Switch base maps
+  function setBase(type) {
+    map.removeLayer(currentBase);
+    if (type === 'satellite') currentBase = satelliteLayer.addTo(map);
+    else if (type === 'terrain') currentBase = terrainLayer.addTo(map);
+    else currentBase = defaultLayer.addTo(map);
+  }
+
+  // Marker handler
   let currentMarker = null;
 
   // URL search query
@@ -272,17 +307,12 @@
     document.getElementById('searchBox').value = q;
   }
 
-  // Manual search
   function manualSearch() {
     const input = document.getElementById('searchBox').value.trim();
-    if (input) {
-      fetchLocation(input);
-    } else {
-      alert("Please enter a location.");
-    }
+    if (input) fetchLocation(input);
+    else alert("Please enter a location.");
   }
 
-  // Fetch location and show marker
   function fetchLocation(query) {
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
       .then(res => res.json())
@@ -290,9 +320,7 @@
         if (data.length > 0) {
           const { lat, lon } = data[0];
           const target = L.latLng(lat, lon);
-
           if (currentMarker) map.removeLayer(currentMarker);
-
           currentMarker = L.marker(target).addTo(map);
           map.setView(target, 16, { animate: true });
         } else {
@@ -305,45 +333,41 @@
       });
   }
 
-  // MODAL HANDLERS
+  // Modal handler
   function openModal(type) {
     const modal = document.getElementById('hazardModal');
     const content = document.getElementById('modalContent');
-
     let html = '';
 
     if (type === 'flood') {
       html = `
         <h2>Know Your Hazard: Flooding</h2>
-        <p><strong>Flooding</strong> is the overflow of water from a river or another body of water due to heavy rainfall.</p>
+        <p><strong>Flooding</strong> is the overflow of water from rivers or seas due to heavy rainfall.</p>
         <h3>What To Do During Flood</h3>
         <ul>
-          <li>Be prepared to evacuate immediately when there’s an alert for heavy rainfall.</li>
-          <li>Refrain from walking through floodwater, especially without protective gear like boots.</li>
-          <li>Don’t walk or drive through moving water. It can sweep you and your car away.</li>
-          <li>Turn off all electrical appliances and LPG tank; turn off the main power switch as needed.</li>
+          <li>Prepare to evacuate when alerts are issued.</li>
+          <li>Don’t walk or drive through floodwater.</li>
+          <li>Turn off power and LPG tanks if flooding occurs.</li>
         </ul>`;
     } else if (type === 'landslide') {
       html = `
         <h2>Know Your Hazard: Landslide</h2>
-        <p><strong>Landslide</strong> is the downward movement of rock, soil, or debris caused by rain, earthquakes, or human activity.</p>
+        <p><strong>Landslides</strong> involve soil and rock moving downhill due to rain or earthquakes.</p>
         <h3>What To Do During Landslide</h3>
         <ul>
-          <li>Move away from steep slopes, cliffs, or areas prone to rockfall.</li>
-          <li>Stay alert for unusual sounds like cracking or rumbling.</li>
-          <li>Be ready to evacuate quickly when heavy rain persists.</li>
-          <li>Stay indoors but avoid the side of the house facing the slope.</li>
+          <li>Move away from steep slopes and cliffs.</li>
+          <li>Listen for unusual rumbling sounds.</li>
+          <li>Evacuate quickly during heavy rains.</li>
         </ul>`;
     } else if (type === 'storm') {
       html = `
         <h2>Know Your Hazard: Storm Surge</h2>
-        <p><strong>Storm Surge</strong> is an abnormal rise in sea level caused by a storm’s strong winds and low pressure.</p>
+        <p><strong>Storm surges</strong> are abnormal sea rises caused by strong winds and low pressure.</p>
         <h3>What To Do During Storm Surge</h3>
         <ul>
-          <li>Evacuate early if authorities advise.</li>
-          <li>Move to higher ground away from coastal areas.</li>
-          <li>Secure your home and disconnect electrical appliances.</li>
-          <li>Do not return until officials declare it safe.</li>
+          <li>Evacuate early if advised.</li>
+          <li>Move to higher ground away from the coast.</li>
+          <li>Disconnect appliances and wait until declared safe.</li>
         </ul>`;
     }
 
