@@ -4,26 +4,25 @@
   <meta charset="UTF-8">
   <title>QCprotektado - Emergency Response System</title>
   <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Mapbox GL -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
   <style>
-    html, body, #map {
-      height: 100%;
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    html, body { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f3f4f6; overflow: hidden; }
 
-    body {
-      background: #f3f4f6;
-      overflow: hidden;
-    }
-
-    /* MAP AREA */
     #map {
-      z-index: 1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(100% - 340px);
+      height: 100%;
     }
 
-    /* NOAH-style Sidebar */
+    /* Sidebar */
     #sidebar {
       position: absolute;
       top: 0;
@@ -32,14 +31,13 @@
       height: 100%;
       background: #fff;
       color: #333;
-      z-index: 999;
+      z-index: 10;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       box-shadow: -4px 0 15px rgba(0,0,0,0.15);
     }
 
-    /* Header style */
     #sidebar h2 {
       font-size: 18px;
       font-weight: 600;
@@ -49,7 +47,6 @@
       margin-bottom: 10px;
     }
 
-    /* Search box */
     #searchBox {
       width: calc(100% - 70px);
       margin: 0 20px 10px 20px;
@@ -68,7 +65,6 @@
       box-shadow: 0 0 5px rgba(0,119,255,0.3);
     }
 
-    /* Find button */
     #sidebar button {
       width: calc(100% - 40px);
       margin: 0 20px;
@@ -87,7 +83,6 @@
       background: #005fcc;
     }
 
-    /* Information Section */
     .info-section {
       padding: 15px 20px;
       border-top: 1px solid #eee;
@@ -116,11 +111,6 @@
       color: #333;
     }
 
-    .hazard-box small {
-      color: #666;
-      font-size: 12px;
-    }
-
     .hazard-box i {
       font-style: normal;
       background: #0077ff;
@@ -130,7 +120,6 @@
       font-size: 12px;
     }
 
-    /* Footer */
     #footer {
       text-align: center;
       font-size: 12px;
@@ -143,7 +132,6 @@
 <body>
 <div id="map"></div>
 
-<!-- Sidebar -->
 <div id="sidebar">
   <div>
     <h2>Search Location</h2>
@@ -152,93 +140,138 @@
 
     <div class="info-section">
       <h3>Hazard Levels In Your Area</h3>
-      <div class="hazard-box">
-        <span>Flood Hazard Level</span>
-        <i>LOW</i>
-      </div>
-      <div class="hazard-box">
-        <span>Landslide Hazard Level</span>
-        <i>LOW</i>
-      </div>
-      <div class="hazard-box">
-        <span>Storm Surge Hazard Level</span>
-        <i>LOW</i>
-      </div>
+      <div class="hazard-box"><span>Flood Hazard Level</span><i>LOW</i></div>
+      <div class="hazard-box"><span>Landslide Hazard Level</span><i>LOW</i></div>
+      <div class="hazard-box"><span>Storm Surge Hazard Level</span><i>LOW</i></div>
     </div>
   </div>
   <div id="footer">QCProtektado © 2025</div>
 </div>
 
 <script>
-  // Define the Philippines bounds
-  const philippinesBounds = L.latLngBounds(
-    [4.2158, 116.1474],
-    [21.3210, 126.8070]
-  );
+  mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN'; // Replace with your Mapbox token
 
-  // Initialize map
-  const map = L.map('map', {
-    zoomAnimation: true,
-    fadeAnimation: true,
-    maxBounds: philippinesBounds,
-    maxBoundsViscosity: 1.0
-  }).setView([12.8797, 121.7740], 6);
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v11',
+    center: [121.0583, 14.6760], // Example: Quezon City
+    zoom: 14,
+    pitch: 60,
+    bearing: -17.6,
+    antialias: true
+  });
 
-  // Base map layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    minZoom: 5,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  // Marker holder
-  let currentMarker = null;
-
-  // URL search query
-  const params = new URLSearchParams(window.location.search);
-  const q = params.get('location');
-  if (q) {
-    fetchLocation(q);
-    document.getElementById('searchBox').value = q;
-  }
-
-  // Manual search
-  function manualSearch() {
-    const input = document.getElementById('searchBox').value.trim();
-    if (input) {
-      fetchLocation(input);
-    } else {
-      alert("Please enter a location.");
-    }
-  }
-
-  // Fetch location and show marker
-function fetchLocation(query) {
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.length > 0) {
-        const { lat, lon } = data[0];
-        const target = L.latLng(lat, lon);
-
-        if (currentMarker) {
-          map.removeLayer(currentMarker);
-        }
-
-        // Add marker without popup
-        currentMarker = L.marker(target).addTo(map);
-
-        // Center and zoom to marker
-        map.setView(target, 16, { animate: true });
-      } else {
-        alert("No matching location found in the Philippines for: " + query);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Error fetching location data.");
+  // Add 3D buildings layer
+  map.on('load', () => {
+    // Terrain and sky
+    map.addSource('mapbox-dem', {
+      'type': 'raster-dem',
+      'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      'tileSize': 512,
+      'maxzoom': 14
     });
-}
+    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+    map.addLayer({
+      'id': 'sky',
+      'type': 'sky',
+      'paint': {
+        'sky-type': 'atmosphere',
+        'sky-atmosphere-sun': [0.0, 0.0],
+        'sky-atmosphere-sun-intensity': 15
+      }
+    });
+
+    // 3D building extrusion
+    const layers = map.getStyle().layers;
+    const labelLayerId = layers.find(
+      (layer) => layer.type === 'symbol' && layer.layout['text-field']
+    ).id;
+
+    map.addLayer(
+      {
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            15, 0,
+            15.05, ['get', 'height']
+          ],
+          'fill-extrusion-base': ['get', 'min_height'],
+          'fill-extrusion-opacity': 0.7
+        }
+      },
+      labelLayerId
+    );
+
+    // Hazard simulation (heat layer)
+    map.addSource('hazard-heat', {
+      'type': 'geojson',
+      'data': {
+        'type': 'FeatureCollection',
+        'features': [
+          { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [121.057, 14.675] } },
+          { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [121.06, 14.678] } },
+          { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [121.054, 14.674] } }
+        ]
+      }
+    });
+
+    map.addLayer({
+      'id': 'hazard-heat-layer',
+      'type': 'heatmap',
+      'source': 'hazard-heat',
+      'maxzoom': 15,
+      'paint': {
+        'heatmap-weight': 1,
+        'heatmap-intensity': 1,
+        'heatmap-color': [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(33,102,172,0)',
+          0.2, 'rgb(103,169,207)',
+          0.4, 'rgb(209,229,240)',
+          0.6, 'rgb(253,219,199)',
+          0.8, 'rgb(239,138,98)',
+          1, 'rgb(178,24,43)'
+        ],
+        'heatmap-radius': 25,
+        'heatmap-opacity': 0.6
+      }
+    });
+  });
+
+  // Search feature (Nominatim)
+  let marker = null;
+  function manualSearch() {
+    const q = document.getElementById('searchBox').value.trim();
+    if (!q) return alert('Please enter a location.');
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(q)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          const { lat, lon } = data[0];
+          const coords = [parseFloat(lon), parseFloat(lat)];
+          map.flyTo({ center: coords, zoom: 16 });
+
+          if (marker) marker.remove();
+          marker = new mapboxgl.Marker({ color: '#0077ff' })
+            .setLngLat(coords)
+            .addTo(map);
+        } else {
+          alert('No matching location found.');
+        }
+      })
+      .catch(err => alert('Error fetching location.'));
+  }
 </script>
 </body>
 </html>
