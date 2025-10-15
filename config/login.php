@@ -3,36 +3,35 @@ require_once "../config/db.php";
 session_start();
 
 //______________________________________________//
-// AUTO-RESET 2FA STATE IF NOT LOGGED IN
+// AUTO-RESET 2FA STATE IF NOT LOGGED IN OR EXPIRED
 //______________________________________________//
 if (!isset($_SESSION['user']) && isset($_SESSION['otp'])) {
     unset($_SESSION['otp']);
     unset($_SESSION['otp_expiry']);
 }
+if (isset($_SESSION['otp_expiry']) && time() > $_SESSION['otp_expiry']) {
+    unset($_SESSION['otp']);
+    unset($_SESSION['otp_expiry']);
+}
 
 //______________________________________________//
-// CREATE DEFAULT ADMIN, STAFF and SupAd ACCOUNTS
+// CREATE DEFAULT ADMIN, STAFF, AND SUPAD ACCOUNTS
 //______________________________________________//
 try {
-    $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    $checkAdmin->execute();
-    if ($checkAdmin->fetchColumn() == 0) {
-        $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertAdmin->execute(['admin', '123', 'admin']);
-    }
+    $defaultAccounts = [
+        ['admin', '123', 'admin'],
+        ['staff', '123', 'staff'],
+        ['supad', '123', 'supad']
+    ];
 
-    $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
-    $checkStaff->execute();
-    if ($checkStaff->fetchColumn() == 0) {
-        $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertStaff->execute(['staff', '123', 'staff']);
-    }
-
-    $checkSupAd = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'supad'");
-    $checkSupAd->execute();
-    if ($checkSupAd->fetchColumn() == 0) {
-        $insertSupAd = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertSupAd->execute(['supad', '123', 'supad']);
+    foreach ($defaultAccounts as $account) {
+        [$username, $password, $role] = $account;
+        $check = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+        $check->execute([$username]);
+        if ($check->fetchColumn() == 0) {
+            $insert = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+            $insert->execute([$username, $password, $role]);
+        }
     }
 } catch (PDOException $e) {
     die("Error creating default accounts: " . $e->getMessage());
@@ -41,12 +40,8 @@ try {
 //______________________________________________//
 // LOGIN ATTEMPTS SYSTEM
 //______________________________________________//
-if (!isset($_SESSION['login_attempts'])) {
-    $_SESSION['login_attempts'] = 0;
-}
-if (!isset($_SESSION['last_attempt_time'])) {
-    $_SESSION['last_attempt_time'] = time();
-}
+if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
+if (!isset($_SESSION['last_attempt_time'])) $_SESSION['last_attempt_time'] = time();
 
 $lockout_duration = 120; // 2 minutes
 $max_attempts = 3;
@@ -59,7 +54,7 @@ if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
 $lockout = $_SESSION['login_attempts'] >= $max_attempts;
 
 //______________________________________________//
-// LOGIN HANDLER
+// NORMAL LOGIN HANDLER
 //______________________________________________//
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) && !isset($_POST['verify_otp'])) {
@@ -76,9 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
 
         if ($user) {
             $isValidPassword = false;
-            if (password_verify($password, $user['password'])) {
-                $isValidPassword = true;
-            } elseif ($password === $user['password']) {
+            if (password_verify($password, $user['password']) || $password === $user['password']) {
                 $isValidPassword = true;
             }
 
@@ -95,13 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
 
                 $_SESSION['just_logged_in'] = true;
 
+                //______________________________________________//
                 // 2FA: Generate OTP
+                //______________________________________________//
                 $_SESSION['otp'] = rand(100000, 999999);
                 $_SESSION['otp_expiry'] = time() + 300; // 5 minutes
-                $otp_message = "Your verification code is: " . $_SESSION['otp'];
 
-                // (Temporary) Display OTP in alert – replace later with email
-                echo "<script>alert('$otp_message');</script>";
+                // (Temporary) Display OTP — replace later with email sending
+                echo "<script>alert('Your verification code is: " . $_SESSION['otp'] . "');</script>";
             } else {
                 $_SESSION['login_attempts']++;
                 $_SESSION['last_attempt_time'] = time();
@@ -143,7 +137,13 @@ if (isset($_POST['verify_otp'])) {
         }
         exit;
     } else {
-        $error = "Invalid or expired verification code!";
+        // Wrong or expired OTP → reset session and redirect to login
+        unset($_SESSION['otp']);
+        unset($_SESSION['otp_expiry']);
+        unset($_SESSION['user']);
+        $_SESSION['login_error'] = "Invalid or expired verification code. Please log in again.";
+        header("Location: login.php");
+        exit;
     }
 }
 
@@ -180,6 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
