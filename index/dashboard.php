@@ -163,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 
  <!-- Background map -->
   <div class="absolute inset-0 z-0">
-    <img src="../img/map.png" alt="Hazard Map Background" class="w-full h-full object-cover opacity-70">
+    <img src="../img/Map.png" alt="Hazard Map Background" class="w-full h-full object-cover opacity-70">
   </div>
 
   <!-- Overlay Container -->
