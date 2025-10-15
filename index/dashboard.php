@@ -161,9 +161,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <!---============================== MAIN CONTENT ==============================--->
   <main class="flex-1 pt-24">
 
-<div class="fixed inset-0 z-0">
-  <img src="../img/Map.png" class="w-full h-full object-cover opacity-70">
-  <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+ <!-- Background map -->
+<div class="absolute inset-0 z-0 h-screen w-full">
+  <img src="../img/Map.png" 
+       alt="Hazard Map Background" 
+       class="w-full h-full object-cover object-center opacity-70">
 </div>
 
   <!-- Overlay Container -->
