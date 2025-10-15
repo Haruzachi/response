@@ -103,14 +103,16 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Read search query from URL
+  // Store reference to the current marker
+  let currentMarker = null;
+
+  // Read search query from URL (from dashboard.php)
   const params = new URLSearchParams(window.location.search);
   const q = params.get('location');
 
-  if (!q) {
-    console.log("No search term provided.");
-  } else {
+  if (q) {
     fetchLocation(q);
+    document.getElementById('searchBox').value = q; // Prefill sidebar search box
   }
 
   // Function to handle manual search from sidebar
@@ -132,12 +134,17 @@
           const { lat, lon, display_name } = data[0];
           const target = L.latLng(lat, lon);
 
-          // Regular zoom animation
-          map.setView(target, 16, { animate: true });
+          // Remove previous marker if exists
+          if (currentMarker) {
+            map.removeLayer(currentMarker);
+          }
 
-          // Add marker
-          const marker = L.marker(target).addTo(map);
-          marker.bindPopup(`<b>${display_name}</b>`).openPopup();
+          // Add new marker
+          currentMarker = L.marker(target).addTo(map);
+          currentMarker.bindPopup(`<b>${display_name}</b>`).openPopup();
+
+          // Smooth zoom
+          map.setView(target, 16, { animate: true });
         } else {
           alert("No matching location found in the Philippines for: " + query);
         }
