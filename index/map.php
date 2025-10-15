@@ -211,8 +211,8 @@
     /* Map style dropdown menu */
     .map-style-menu {
       position: absolute;
-      top: 30px;
-      left: 55px;
+      top: 60px;
+      left: 65px;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
