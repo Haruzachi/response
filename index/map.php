@@ -59,7 +59,7 @@
       border: none;
       border-radius: 8px;
       width: calc(100% - 80px); /* Reduced width */
-      margin: 0 40px;
+      margin: 0 20px;
       padding: 12px;
       font-size: 15px;
       font-weight: 500;
