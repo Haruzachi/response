@@ -190,8 +190,7 @@
     /* Map logo button */
     .map-logo {
       position: absolute;
-      top: 15px;
-      left: 30px;
+      top: 70px;
       z-index: 1000;
       background: white;
       border-radius: 8px;
