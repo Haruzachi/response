@@ -163,36 +163,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 
  <!-- Background map -->
   <div class="absolute inset-0 z-0">
-    <img src="../img/floodmap.png" alt="Hazard Map Background" class="w-full h-full object-cover opacity-70">
+    <img src="../img/map.png" alt="Hazard Map Background" class="w-full h-full object-cover opacity-70">
   </div>
 
   <!-- Overlay Container -->
-  <div class="relative z-10 flex items-center justify-center min-h-screen text-black">
-    <div class="bg-white bg-opacity-90 shadow-2xl rounded-2xl p-10 text-center max-w-md w-[90%] backdrop-blur-md">
+<div class="relative z-10 flex items-center justify-center min-h-screen text-black">
+  <div class="bg-white bg-opacity-90 shadow-2xl rounded-3xl p-12 text-center w-full max-w-2xl backdrop-blur-md">
 
-      <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Hazard Mapping</h1>
-      <p class="text-gray-600 mb-6 leading-relaxed">
-  Know if your community is at risk of <span class="font-semibold">floods</span>, 
-  <span class="font-semibold">landslides</span>, or 
-  <span class="font-semibold">storm surges</span>. 
-  This emergency response tool uses Project NOAH insights to help keep you safe and informed.
-</p>
-      <!-- Search form -->
-      <form action="map.php" method="get" class="flex items-center border border-gray-300 rounded-full overflow-hidden mb-8">
-        <input 
-          type="text" 
-          name="location" 
-          placeholder="Search Location" 
-          required
-          class="flex-1 px-4 py-3 focus:outline-none text-gray-700"
-        >
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3">
-          🔍
-        </button>
-      </form>
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 text-gray-800">Hazard Mapping</h1>
+    <p class="text-gray-600 mb-8 leading-relaxed text-lg">
+      Identify if your area is vulnerable to 
+      <span class="font-semibold">floods</span>, 
+      <span class="font-semibold">landslides</span>, or 
+      <span class="font-semibold">storm surges</span>. 
+      This emergency response feature integrates Project NOAH insights to keep you informed and prepared.
+    </p>
 
-    </div>
+    <!-- Search form -->
+    <form action="map.php" method="get" class="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-md">
+      <input 
+        type="text" 
+        name="location" 
+        placeholder="Search Location" 
+        required
+        class="flex-1 px-5 py-4 focus:outline-none text-gray-700 text-lg"
+      >
+      <button 
+        type="submit" 
+        class="bg-blue-600 hover:bg-blue-700 text-white px-7 py-4 text-lg font-semibold transition duration-300">
+        🔍
+      </button>
+    </form>
+
   </div>
+</div>
 
  
  <!---============================== USER FEEDBACK SECTION ==============================--->
