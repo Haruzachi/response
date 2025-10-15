@@ -6,35 +6,32 @@ session_start();
 // CREATE DEFAULT ADMIN, STAFF and SupAd ACCOUNTS
 //______________________________________________//
 try {
-    // Create default admin if not exists
     $checkAdmin = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     $checkAdmin->execute();
     if ($checkAdmin->fetchColumn() == 0) {
         $insertAdmin = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertAdmin->execute(['admin', '123', 'admin']); // default admin account
+        $insertAdmin->execute(['admin', '123', 'admin']);
     }
 
-    // Create default staff if not exists
     $checkStaff = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'staff'");
     $checkStaff->execute();
     if ($checkStaff->fetchColumn() == 0) {
         $insertStaff = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertStaff->execute(['staff', '123', 'staff']); // default staff account
+        $insertStaff->execute(['staff', '123', 'staff']);
     }
 
-    // Create default SupAd if not exists
     $checkSupAd = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = 'supad'");
     $checkSupAd->execute();
     if ($checkSupAd->fetchColumn() == 0) {
         $insertSupAd = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $insertSupAd->execute(['supad', '123', 'supad']); // default supad account
+        $insertSupAd->execute(['supad', '123', 'supad']);
     }
 } catch (PDOException $e) {
     die("Error creating default accounts: " . $e->getMessage());
 }
 
 //______________________________________________//
-// LOGIN ATTEMPTS SYSTEM (2-minute lockout)
+// LOGIN ATTEMPTS SYSTEM
 //______________________________________________//
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 0;
@@ -44,9 +41,8 @@ if (!isset($_SESSION['last_attempt_time'])) {
 }
 
 $lockout_duration = 120; // 2 minutes
-$max_attempts = 3;       // Max allowed failed attempts
+$max_attempts = 3;
 
-// Reset attempts if 2 minutes passed
 if (time() - $_SESSION['last_attempt_time'] > $lockout_duration) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['last_attempt_time'] = time();
@@ -58,23 +54,19 @@ $lockout = $_SESSION['login_attempts'] >= $max_attempts;
 // LOGIN HANDLER
 //______________________________________________//
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) && !isset($_POST['verify_otp'])) {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
 
     if ($lockout) {
-        // Show remaining lockout time
         $remaining_time = $lockout_duration - (time() - $_SESSION['last_attempt_time']);
         $error = "Too many failed attempts. Please wait {$remaining_time} seconds before trying again.";
     } else {
-        // Fetch user by username
         $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // If user password is plain text (admin/staff default accounts)
-            // or hashed (users who changed password via forgot password)
             $isValidPassword = false;
             if (password_verify($password, $user['password'])) {
                 $isValidPassword = true;
@@ -83,8 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) 
             }
 
             if ($isValidPassword) {
-                // Successful login
-                $_SESSION['login_attempts'] = 0; // Reset failed attempts
+                $_SESSION['login_attempts'] = 0;
                 $_SESSION['last_attempt_time'] = time();
 
                 $_SESSION['user'] = [
@@ -96,34 +87,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password'])) 
 
                 $_SESSION['just_logged_in'] = true;
 
-                // Redirect based on role
-                switch ($user['role']) {
-                    case 'admin':
-                        header("Location: ../data/loadingadmin.php");
-                        break;
-                    case 'staff':
-                        header("Location: ../data/loadingstaff.php");
-                        break;
-                    case 'supad':
-                        header("Location: ../data/loadingsupad.php");
-                        break;
-                    default:
-                        header("Location: ../data/loadinguser.php");
-                        break;
-                }
-                exit;
+                // 2FA: Generate OTP
+                $_SESSION['otp'] = rand(100000, 999999);
+                $_SESSION['otp_expiry'] = time() + 300; // 5 minutes
+                $otp_message = "Your verification code is: " . $_SESSION['otp'];
+
+                // (Temporary) Display OTP in alert – replace later with email
+                echo "<script>alert('$otp_message');</script>";
             } else {
-                // Wrong password
                 $_SESSION['login_attempts']++;
                 $_SESSION['last_attempt_time'] = time();
                 $error = "Invalid username or password!";
             }
         } else {
-            // Username not found
             $_SESSION['login_attempts']++;
             $_SESSION['last_attempt_time'] = time();
             $error = "Invalid username or password!";
         }
+    }
+}
+
+//______________________________________________//
+// TWO-FACTOR AUTHENTICATION (OTP VERIFY)
+//______________________________________________//
+if (isset($_POST['verify_otp'])) {
+    $entered_otp = trim($_POST['otp']);
+
+    if (isset($_SESSION['otp']) && $entered_otp == $_SESSION['otp'] && time() < $_SESSION['otp_expiry']) {
+        unset($_SESSION['otp']);
+        unset($_SESSION['otp_expiry']);
+
+        $role = $_SESSION['user']['role'] ?? '';
+
+        switch ($role) {
+            case 'admin':
+                header("Location: ../data/loadingadmin.php");
+                break;
+            case 'staff':
+                header("Location: ../data/loadingstaff.php");
+                break;
+            case 'supad':
+                header("Location: ../data/loadingsupad.php");
+                break;
+            default:
+                header("Location: ../data/loadinguser.php");
+                break;
+        }
+        exit;
+    } else {
+        $error = "Invalid or expired verification code!";
     }
 }
 
@@ -142,13 +154,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     } elseif ($new_password !== $confirm_password) {
         $fp_error = "Passwords do not match.";
     } else {
-        // Check if username exists
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Hash the new password before updating
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $update = $conn->prepare("UPDATE users SET password = ? WHERE username = ?");
             if ($update->execute([$hashed_password, $username])) {
@@ -257,34 +267,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                 <h2 class="text-2xl text-white font-bold text-center mb-2">Emergency Response System</h2>
                 <p class="text-center text-gray-400 mb-6">Login to your account</p>
 
-                <?php if (!empty($error)): ?>
+                <?php if (!empty($error) && !isset($_SESSION['otp'])): ?>
                     <p class="bg-red-100 text-red-600 p-2 rounded mb-4 text-center"><?= $error ?></p>
                 <?php endif; ?>
 
+                <?php if (!isset($_SESSION['otp'])): ?>
                 <form method="POST" class="space-y-4">
-    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <div>
+                        <label class="block text-white mb-1 text-sm">Username</label>
+                        <input type="text" name="username" placeholder="Enter your username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
 
-    <div>
-        <label class="block text-white mb-1 text-sm">Username</label>
-        <input type="text" name="username" placeholder="Enter your username" 
-            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-    </div>
+                    <div>
+                        <label class="block text-white mb-1 text-sm">Password</label>
+                        <input type="password" name="password" placeholder="Enter your password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
 
-    <div>
-        <label class="block text-white mb-1 text-sm">Password</label>
-        <input type="password" name="password" placeholder="Enter your password" 
-            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-    </div>
-
-    <button type="submit" name="login" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
-        Login
-    </button>
-</form>
+                    <button type="submit" name="login" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">Login</button>
+                </form>
 
                 <div class="flex justify-between mt-4 text-sm">
-                    <!--<p class="text-white">Don't have an account? <a href="./register.php" class="text-blue-400 hover:underline">Register here</a></p>-->
                     <p><a href="javascript:void(0)" onclick="openForgotModal()" class="text-yellow-400 hover:underline">Forgot Password?</a></p>
                 </div>
+                <?php endif; ?>
+
+                <?php if (isset($_SESSION['otp'])): ?>
+                <div class="mt-6">
+                    <h2 class="text-xl text-white font-bold text-center mb-2">Two-Factor Verification</h2>
+                    <p class="text-gray-300 text-center mb-4">Enter the 6-digit code sent to your email</p>
+                    <?php if (!empty($error)): ?>
+                        <p class="bg-red-100 text-red-600 p-2 rounded mb-4 text-center"><?= $error ?></p>
+                    <?php endif; ?>
+                    <form method="POST" class="space-y-4">
+                        <input type="hidden" name="verify_otp" value="1">
+                        <div>
+                            <input type="text" name="otp" placeholder="Enter 6-digit code" maxlength="6"
+                                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">Verify Code</button>
+                    </form>
+                </div>
+                <?php endif; ?>
             </div>
         </main>
 
