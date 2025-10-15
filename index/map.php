@@ -51,7 +51,7 @@
 
     /* Search box */
     #searchBox {
-      width: calc(100% - 150px);
+      width: calc(100% - 100px);
       margin: 0 20px 10px 20px;
       padding: 12px 15px;
       border: 1px solid #ccc;
