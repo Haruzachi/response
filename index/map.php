@@ -215,6 +215,59 @@
     .map-style-menu button:hover {
       background: #005fcc;
     }
+    /* Modal overlay and content */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #fff;
+  width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+  color: #0077ff;
+  margin-top: 0;
+}
+
+.modal-content h3 {
+  color: #333;
+  margin-top: 15px;
+}
+
+.modal-content p, .modal-content ul {
+  color: #444;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.close-btn {
+  background: #0077ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.close-btn:hover {
+  background: #005fcc;
+}
+
   </style>
 </head>
 
