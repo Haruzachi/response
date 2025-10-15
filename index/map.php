@@ -213,31 +213,32 @@
   }
 
   // Fetch location and show marker
-  function fetchLocation(query) {
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          const { lat, lon, display_name } = data[0];
-          const target = L.latLng(lat, lon);
+function fetchLocation(query) {
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        const target = L.latLng(lat, lon);
 
-          if (currentMarker) {
-            map.removeLayer(currentMarker);
-          }
-
-          currentMarker = L.marker(target).addTo(map);
-          currentMarker.bindPopup(`<b>${display_name}</b>`).openPopup();
-
-          map.setView(target, 16, { animate: true });
-        } else {
-          alert("No matching location found in the Philippines for: " + query);
+        if (currentMarker) {
+          map.removeLayer(currentMarker);
         }
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Error fetching location data.");
-      });
-  }
+
+        // Add marker without popup
+        currentMarker = L.marker(target).addTo(map);
+
+        // Center and zoom to marker
+        map.setView(target, 16, { animate: true });
+      } else {
+        alert("No matching location found in the Philippines for: " + query);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error fetching location data.");
+    });
+}
 </script>
 </body>
 </html>
