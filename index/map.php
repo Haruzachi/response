@@ -191,7 +191,7 @@
     .map-logo {
       position: absolute;
       top: 15px;
-      left: 15px;
+      left: 30px;
       z-index: 1000;
       background: white;
       border-radius: 8px;
@@ -245,7 +245,6 @@
 <!-- Map Logo Button -->
 <div class="map-logo" onclick="toggleMapMenu()">
   <img src="../img/Logocircle.png" alt="Map Logo">
-  <span>Map Style</span>
 </div>
 
 <!-- Map Style Menu -->
