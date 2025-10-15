@@ -161,25 +161,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <!---============================== MAIN CONTENT ==============================--->
   <main class="flex-1 pt-24">
 
-<div class="relative mt-25">
-  <div class="absolute inset-0 z-0 h-screen w-full">
-    <img src="../img/Map.png" 
-         alt="Hazard Map Background" 
-         class="w-full h-full object-cover object-center opacity-70">
-  </div>
-</div>
+<!-- HERO SECTION (MAP BACKGROUND + CENTERED OVERLAY) -->
+<section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+
+  <!-- Background Map -->
+  <img src="../img/Map.png"
+       alt="Hazard Map Background"
+       class="absolute inset-0 w-full h-full object-cover object-center opacity-70">
 
   <!-- Overlay Container -->
-<div class="absolute inset-0 z-10 flex items-center justify-center">
-  <div class="bg-white bg-opacity-90 rounded-2xl shadow-lg p-10 w-[600px] text-center">
-
+  <div class="relative z-10 bg-white/90 rounded-2xl shadow-2xl p-10 w-[600px] max-w-[90%] text-center">
     <h1 class="text-4xl md:text-5xl font-bold mb-6 text-gray-800">Hazard Mapping</h1>
     <p class="text-gray-600 mb-6 leading-relaxed">
-  Identify areas vulnerable to <span class="font-semibold">floods</span>, 
-  <span class="font-semibold">landslides</span>, and 
-  <span class="font-semibold">storm surges</span>. 
-  Get the awareness you need to prepare early and respond quickly when hazards strike.
-</p>
+      Identify areas vulnerable to <span class="font-semibold">floods</span>, 
+      <span class="font-semibold">landslides</span>, and 
+      <span class="font-semibold">storm surges</span>. 
+      Get the awareness you need to prepare early and respond quickly when hazards strike.
+    </p>
 
     <!-- Search form -->
     <form action="map.php" method="get" class="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-md">
@@ -196,9 +194,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
         🔍
       </button>
     </form>
-
   </div>
-</div>
+</section>
 
     <!---============================== SERVICES SECTION ==============================--->
 <section id="services" class="min-h-screen bg-gradient-to-b from-stone-800 to-sky-800 py-16 px-6">
