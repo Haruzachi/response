@@ -100,7 +100,7 @@ try {
 </header>
 
     <!---============================== SIDE BAR ==============================--->
-  <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
+ <aside class="w-64 bg-gradient-to-b from-stone-950 to-green-800 text-white flex flex-col h-screen">
     <div class="p-4 flex flex-col items-start space-y-2">
       <div class="flex items-center space-x-3">
         <img src="../img/Logo.png" alt="Logo" class="w-10 h-10 rounded-full">
@@ -126,14 +126,14 @@ try {
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-phone-ring text-xl'></i>
+            <i class='bx bx-phone text-xl'></i>
             <span class="ml-2">Receiving & Logging</span>
           </a>
         </li>
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-ambulance text-xl'></i>
+            <i class='bx bx-map-pin text-xl'></i>
             <span class="ml-2">Incident Prioritization</span>
           </a>
         </li>
@@ -161,14 +161,14 @@ try {
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-highlights text-xl'></i>
+            <i class='bx bx-network-chart text-xl'></i>
             <span class="ml-2">Coordination Portal</span>
           </a>
         </li>
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-message-circle text-xl'></i>
+            <i class='bx bx-chat text-xl'></i>
             <span class="ml-2">Review & Feedback</span>
           </a>
         </li>
@@ -197,6 +197,7 @@ try {
       </a>
     </div>
   </aside>
+
 
     <!---============================== MAIN CONTENT ==============================--->
     <main class="flex-1 p-6">

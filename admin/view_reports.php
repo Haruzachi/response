@@ -135,14 +135,14 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-phone-ring text-xl'></i>
+            <i class='bx bx-phone text-xl'></i>
             <span class="ml-2">Receiving & Logging</span>
           </a>
         </li>
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-ambulance text-xl'></i>
+            <i class='bx bx-map-pin text-xl'></i>
             <span class="ml-2">Incident Prioritization</span>
           </a>
         </li>
@@ -170,14 +170,14 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-highlights text-xl'></i>
+            <i class='bx bx-network-chart text-xl'></i>
             <span class="ml-2">Coordination Portal</span>
           </a>
         </li>
 
         <li>
           <a href="#" class="flex items-center p-2 hover:bg-blue-800 rounded">
-            <i class='bx bx-message-circle text-xl'></i>
+            <i class='bx bx-chat text-xl'></i>
             <span class="ml-2">Review & Feedback</span>
           </a>
         </li>
@@ -206,6 +206,7 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </a>
     </div>
   </aside>
+
 
   <!---============================== MAIN CONTENT ==============================--->
   <main class="flex-1 p-6 overflow-y-auto">
