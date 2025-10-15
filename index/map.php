@@ -239,7 +239,7 @@
     <h2>Search Location</h2>
     <input type="text" id="searchBox" placeholder="Search location...">
 
-    <a href="dashboard.php" class="home-btn">
+    <a href="dashboard.php#home" class="home-btn">
       <i class='bx bx-home-alt'></i> Home
     </a>
 
