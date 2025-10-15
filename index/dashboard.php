@@ -170,8 +170,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
 </div>
 
   <!-- Overlay Container -->
-<div class="relative z-10 flex items-center justify-center min-h-screen text-black">
-  <div class="bg-white bg-opacity-90 shadow-2xl rounded-3xl p-12 text-center w-full max-w-2xl backdrop-blur-md">
+<div class="absolute inset-0 z-10 flex items-center justify-center">
+  <div class="bg-white bg-opacity-90 rounded-2xl shadow-lg p-10 w-[600px] text-center">
 
     <h1 class="text-4xl md:text-5xl font-bold mb-6 text-gray-800">Hazard Mapping</h1>
     <p class="text-gray-600 mb-6 leading-relaxed">
