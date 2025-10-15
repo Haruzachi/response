@@ -7,115 +7,202 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    html, body, #map { height: 100%; margin: 0; }
-    body { background: #000; overflow: hidden; }
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-    /* Right sidebar overlay */
+    body {
+      background: #f3f4f6;
+      overflow: hidden;
+    }
+
+    /* MAP AREA */
+    #map {
+      z-index: 1;
+    }
+
+    /* NOAH-style Sidebar */
     #sidebar {
       position: absolute;
       top: 0;
       right: 0;
-      width: 280px;
+      width: 340px;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      color: #fff;
+      background: #fff;
+      color: #333;
       z-index: 999;
-      padding: 20px;
-      box-shadow: -3px 0 10px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      box-shadow: -4px 0 15px rgba(0,0,0,0.15);
     }
 
+    /* Header style */
     #sidebar h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: #00c3ff;
-      text-align: center;
-    }
-
-    #sidebar input {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      background: #222;
-      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      color: #0077ff;
+      text-align: left;
+      margin: 20px;
       margin-bottom: 10px;
     }
 
+    /* Search box */
+    #searchBox {
+      width: calc(100% - 40px);
+      margin: 0 20px 10px 20px;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 50px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+      background-color: #fafafa;
+    }
+
+    #searchBox:focus {
+      border-color: #0077ff;
+      background-color: #fff;
+      box-shadow: 0 0 5px rgba(0,119,255,0.3);
+    }
+
+    /* Find button */
     #sidebar button {
-      width: 100%;
-      padding: 10px;
-      background: #00c3ff;
+      width: calc(100% - 40px);
+      margin: 0 20px;
+      padding: 12px;
+      background: #0077ff;
       border: none;
-      border-radius: 5px;
-      color: #fff;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
       cursor: pointer;
-      transition: 0.3s;
+      font-size: 15px;
+      transition: background 0.3s;
     }
 
     #sidebar button:hover {
-      background: #009edb;
+      background: #005fcc;
     }
 
+    /* Information Section */
+    .info-section {
+      padding: 15px 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .info-section h3 {
+      color: #0077ff;
+      font-size: 16px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .hazard-box {
+      background: #f9fafb;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hazard-box span {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .hazard-box small {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .hazard-box i {
+      font-style: normal;
+      background: #0077ff;
+      color: white;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* Footer */
     #footer {
       text-align: center;
       font-size: 12px;
-      opacity: 0.6;
+      color: #777;
+      padding: 10px 0 15px 0;
+      border-top: 1px solid #eee;
     }
   </style>
 </head>
 <body>
 <div id="map"></div>
 
-<!-- Sidebar (Right Side) -->
+<!-- Sidebar -->
 <div id="sidebar">
   <div>
     <h2>Search Location</h2>
-    <input type="text" id="searchBox" placeholder="Enter location..." />
+    <input type="text" id="searchBox" placeholder="Search location...">
     <button onclick="manualSearch()">Find</button>
+
+    <div class="info-section">
+      <h3>Hazard Levels In Your Area</h3>
+      <div class="hazard-box">
+        <span>Flood Hazard Level</span>
+        <i>LOW</i>
+      </div>
+      <div class="hazard-box">
+        <span>Landslide Hazard Level</span>
+        <i>LOW</i>
+      </div>
+      <div class="hazard-box">
+        <span>Storm Surge Hazard Level</span>
+        <i>LOW</i>
+      </div>
+    </div>
   </div>
-  <div id="footer">
-    QCProtektado © 2025
-  </div>
+  <div id="footer">QCProtektado © 2025</div>
 </div>
 
 <script>
   // Define the Philippines bounds
   const philippinesBounds = L.latLngBounds(
-    [4.2158, 116.1474],  // Southwest
-    [21.3210, 126.8070]  // Northeast
+    [4.2158, 116.1474],
+    [21.3210, 126.8070]
   );
 
-  // Initialize map centered on the Philippines
+  // Initialize map
   const map = L.map('map', {
     zoomAnimation: true,
     fadeAnimation: true,
     maxBounds: philippinesBounds,
     maxBoundsViscosity: 1.0
-  }).setView([12.8797, 121.7740], 6); // Center of PH
+  }).setView([12.8797, 121.7740], 6);
 
-  // Add OpenStreetMap layer
+  // Base map layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     minZoom: 5,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Store reference to the current marker
+  // Marker holder
   let currentMarker = null;
 
-  // Read search query from URL (from dashboard.php)
+  // URL search query
   const params = new URLSearchParams(window.location.search);
   const q = params.get('location');
-
   if (q) {
     fetchLocation(q);
-    document.getElementById('searchBox').value = q; // Prefill sidebar search box
+    document.getElementById('searchBox').value = q;
   }
 
-  // Function to handle manual search from sidebar
+  // Manual search
   function manualSearch() {
     const input = document.getElementById('searchBox').value.trim();
     if (input) {
@@ -125,7 +212,7 @@
     }
   }
 
-  // Fetch and zoom to location
+  // Fetch location and show marker
   function fetchLocation(query) {
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
       .then(res => res.json())
@@ -134,16 +221,13 @@
           const { lat, lon, display_name } = data[0];
           const target = L.latLng(lat, lon);
 
-          // Remove previous marker if exists
           if (currentMarker) {
             map.removeLayer(currentMarker);
           }
 
-          // Add new marker
           currentMarker = L.marker(target).addTo(map);
           currentMarker.bindPopup(`<b>${display_name}</b>`).openPopup();
 
-          // Smooth zoom
           map.setView(target, 16, { animate: true });
         } else {
           alert("No matching location found in the Philippines for: " + query);
