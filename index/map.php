@@ -104,6 +104,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .hazard-box:hover {
+      background: #eef6ff;
     }
 
     .hazard-box span {
@@ -128,7 +134,60 @@
       border-top: 1px solid #eee;
     }
 
-    /* Map Logo Button */
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background: #fff;
+      width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .modal-content h2 {
+      color: #0077ff;
+      margin-top: 0;
+    }
+
+    .modal-content h3 {
+      color: #333;
+      margin-top: 15px;
+    }
+
+    .modal-content p, .modal-content ul {
+      color: #444;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .close-btn {
+      background: #0077ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .close-btn:hover {
+      background: #005fcc;
+    }
+
+    /* Map logo button */
     .map-logo {
       position: absolute;
       top: 15px;
@@ -149,10 +208,10 @@
       height: 26px;
     }
 
-    /* Map style menu */
+    /* Map style dropdown menu */
     .map-style-menu {
       position: absolute;
-      top: 55px;
+      top: 60px;
       left: 15px;
       background: white;
       border-radius: 8px;
@@ -172,56 +231,29 @@
       background: #0077ff;
       color: white;
       cursor: pointer;
+      font-size: 13px;
     }
 
     .map-style-menu button:hover {
       background: #005fcc;
-    }
-
-    /* Compass */
-    .compass {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 60px;
-      height: 60px;
-      background: white;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: grab;
-      transition: transform 0.3s ease;
-    }
-
-    .compass::after {
-      content: 'N';
-      position: absolute;
-      top: 6px;
-      font-weight: bold;
-      color: red;
     }
   </style>
 </head>
 <body>
 <div id="map"></div>
 
-<!-- Map logo -->
+<!-- Map Logo Button -->
 <div class="map-logo" onclick="toggleMapMenu()">
   <img src="../img/Logocircle.png" alt="Map Logo">
   <span>Map Style</span>
 </div>
 
-<!-- Map style menu -->
+<!-- Map Style Menu -->
 <div class="map-style-menu" id="mapMenu">
-  <button onclick="setBase('terrain')">Terrain</button>
+  <button onclick="setBase('default')">Default</button>
   <button onclick="setBase('satellite')">Satellite</button>
+  <button onclick="setBase('terrain')">Terrain</button>
 </div>
-
-<!-- Compass -->
-<div class="compass" id="compass"></div>
 
 <!-- Sidebar -->
 <div id="sidebar">
@@ -232,15 +264,15 @@
 
     <div class="info-section">
       <h3>Hazard Levels In Your Area</h3>
-      <div class="hazard-box">
+      <div class="hazard-box" onclick="openModal('flood')">
         <span>Flood Hazard Level</span>
         <i>LOW</i>
       </div>
-      <div class="hazard-box">
+      <div class="hazard-box" onclick="openModal('landslide')">
         <span>Landslide Hazard Level</span>
         <i>LOW</i>
       </div>
-      <div class="hazard-box">
+      <div class="hazard-box" onclick="openModal('storm')">
         <span>Storm Surge Hazard Level</span>
         <i>LOW</i>
       </div>
@@ -249,35 +281,60 @@
   <div id="footer">QCProtektado © 2025</div>
 </div>
 
+<!-- Hazard Modal -->
+<div id="hazardModal" class="modal">
+  <div class="modal-content" id="modalContent">
+    <h2>Hazard Guide</h2>
+    <p>Loading...</p>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
 <script>
   const philippinesBounds = L.latLngBounds([4.2158, 116.1474], [21.3210, 126.8070]);
-  const map = L.map('map', { zoomAnimation: true, fadeAnimation: true, maxBounds: philippinesBounds, maxBoundsViscosity: 1.0 })
-    .setView([12.8797, 121.7740], 6);
 
-  // Default layer
-  let currentLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, minZoom: 5, attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  // Map initialization
+  const map = L.map('map', {
+    zoomAnimation: true,
+    fadeAnimation: true,
+    maxBounds: philippinesBounds,
+    maxBoundsViscosity: 1.0
+  }).setView([12.8797, 121.7740], 6);
 
-  let terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
-  let satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+  // Base layers
+  const defaultLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+  });
 
-  let currentMarker = null;
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles &copy; Esri'
+  });
 
+  const terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    maxZoom: 17, attribution: '&copy; OpenTopoMap contributors'
+  });
+
+  let currentBase = defaultLayer.addTo(map);
+
+  // Switch base maps
+  function setBase(type) {
+    map.removeLayer(currentBase);
+    if (type === 'satellite') currentBase = satelliteLayer.addTo(map);
+    else if (type === 'terrain') currentBase = terrainLayer.addTo(map);
+    else currentBase = defaultLayer.addTo(map);
+    document.getElementById('mapMenu').style.display = 'none';
+  }
+
+  // Toggle map style menu
   function toggleMapMenu() {
     const menu = document.getElementById('mapMenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
   }
 
-  function setBase(type) {
-    map.removeLayer(currentLayer);
-    if (type === 'terrain') currentLayer = terrainLayer;
-    else if (type === 'satellite') currentLayer = satelliteLayer;
-    else currentLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    map.addLayer(currentLayer);
-    document.getElementById('mapMenu').style.display = 'none';
-  }
+  // Marker handler
+  let currentMarker = null;
 
+  // URL search query
   const params = new URLSearchParams(window.location.search);
   const q = params.get('location');
   if (q) {
@@ -301,7 +358,9 @@
           if (currentMarker) map.removeLayer(currentMarker);
           currentMarker = L.marker(target).addTo(map);
           map.setView(target, 16, { animate: true });
-        } else alert("No matching location found in the Philippines for: " + query);
+        } else {
+          alert("No matching location found in the Philippines for: " + query);
+        }
       })
       .catch(err => {
         console.error(err);
@@ -309,39 +368,50 @@
       });
   }
 
-  // Compass rotation
-  const compass = document.getElementById('compass');
-  let angle = 0;
-  let rotating = false;
-  let startX = 0;
+  // Modal handler
+  function openModal(type) {
+    const modal = document.getElementById('hazardModal');
+    const content = document.getElementById('modalContent');
+    let html = '';
 
-  compass.addEventListener('mousedown', e => {
-    rotating = true;
-    startX = e.clientX;
-    compass.style.cursor = 'grabbing';
-  });
-
-  document.addEventListener('mouseup', () => {
-    rotating = false;
-    compass.style.cursor = 'grab';
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (rotating) {
-      const delta = e.clientX - startX;
-      angle += delta * 0.5;
-      startX = e.clientX;
-      map.rotate?.(angle);
-      compass.style.transform = `rotate(${angle}deg)`;
+    if (type === 'flood') {
+      html = `
+        <h2>Know Your Hazard: Flooding</h2>
+        <p><strong>Flooding</strong> is the overflow of water from rivers or seas due to heavy rainfall.</p>
+        <h3>What To Do During Flood</h3>
+        <ul>
+          <li>Prepare to evacuate when alerts are issued.</li>
+          <li>Don’t walk or drive through floodwater.</li>
+          <li>Turn off power and LPG tanks if flooding occurs.</li>
+        </ul>`;
+    } else if (type === 'landslide') {
+      html = `
+        <h2>Know Your Hazard: Landslide</h2>
+        <p><strong>Landslides</strong> involve soil and rock moving downhill due to rain or earthquakes.</p>
+        <h3>What To Do During Landslide</h3>
+        <ul>
+          <li>Move away from steep slopes and cliffs.</li>
+          <li>Listen for unusual rumbling sounds.</li>
+          <li>Evacuate quickly during heavy rains.</li>
+        </ul>`;
+    } else if (type === 'storm') {
+      html = `
+        <h2>Know Your Hazard: Storm Surge</h2>
+        <p><strong>Storm surges</strong> are abnormal sea rises caused by strong winds and low pressure.</p>
+        <h3>What To Do During Storm Surge</h3>
+        <ul>
+          <li>Evacuate early if advised.</li>
+          <li>Move to higher ground away from the coast.</li>
+          <li>Disconnect appliances and wait until declared safe.</li>
+        </ul>`;
     }
-  });
 
-  // Polyfill: If rotate not available, simulate via CSS
-  if (!map.rotate) {
-    let mapContainer = document.querySelector('#map');
-    map.rotate = (deg) => {
-      mapContainer.style.transform = `rotate(${deg}deg)`;
-    };
+    content.innerHTML = html + '<button class="close-btn" onclick="closeModal()">Close</button>';
+    modal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('hazardModal').style.display = 'none';
   }
 </script>
 </body>
