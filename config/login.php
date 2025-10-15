@@ -214,16 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                         </span>
                     </a>
 
-                    <a href="../config/register.php" class="flex items-center space-x-2 text-white font-medium transition duration-300 hover:text-orange-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span class="relative group">
-                            REGISTER
-                            <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
-                        </span>
-                    </a>
-
                 </div>
 
                 <div class="flex items-center space-x-3 md:hidden">
@@ -244,7 +234,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
                 <a href="../index/dashboard.php#settings" class="block hover:text-blue-400 transition">Settings</a>
                 <hr class="border-gray-600">
                 <a href="login.php" class="block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition text-center">Login</a>
-                <a href="register.php" class="block px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 transition text-center">Register</a>
             </div>
         </header>
 
@@ -282,7 +271,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
 </form>
 
                 <div class="flex justify-between mt-4 text-sm">
-                    <p class="text-white">Don't have an account? <a href="./register.php" class="text-blue-400 hover:underline">Register here</a></p>
                     <p><a href="javascript:void(0)" onclick="openForgotModal()" class="text-yellow-400 hover:underline">Forgot Password?</a></p>
                 </div>
             </div>
