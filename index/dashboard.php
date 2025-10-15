@@ -174,13 +174,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   <div class="bg-white bg-opacity-90 shadow-2xl rounded-3xl p-12 text-center w-full max-w-2xl backdrop-blur-md">
 
     <h1 class="text-4xl md:text-5xl font-bold mb-6 text-gray-800">Hazard Mapping</h1>
-    <p class="text-gray-600 mb-8 leading-relaxed text-lg">
-      Identify if your area is vulnerable to 
-      <span class="font-semibold">floods</span>, 
-      <span class="font-semibold">landslides</span>, or 
-      <span class="font-semibold">storm surges</span>. 
-      This emergency response feature integrates Project NOAH insights to keep you informed and prepared.
-    </p>
+    <p class="text-gray-600 mb-6 leading-relaxed">
+  Identify areas vulnerable to <span class="font-semibold">floods</span>, 
+  <span class="font-semibold">landslides</span>, and 
+  <span class="font-semibold">storm surges</span>. 
+  Get the awareness you need to prepare early and respond quickly when hazards strike.
+</p>
 
     <!-- Search form -->
     <form action="map.php" method="get" class="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-md">
@@ -493,81 +492,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   </div>
 </div>
 
+</body>
+
 <script>
-  let localStream;
-  let peerConnection;
-  let isMuted = false;
-  let isSpeakerOn = false;
-  const servers = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
-
-  // === Open Modal and Start Call ===
-  async function openCallModal() {
-    const modal = document.getElementById('callModal');
-    const dashboard = document.getElementById('dashboardWrapper');
-    const callStatus = document.getElementById('callStatus');
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    // Add blur to background
-    dashboard.classList.add('blurred');
-
-    try {
-      callStatus.textContent = "Calling...";
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      peerConnection = new RTCPeerConnection(servers);
-      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-      setTimeout(() => {
-        callStatus.textContent = "Connected with Emergency Response";
-      }, 2000);
-
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-    } catch (error) {
-      console.error("Error starting call:", error);
-      alert("Unable to access microphone. Please allow microphone permissions.");
-      callStatus.textContent = "Error: Microphone access denied";
-    }
-  }
-
-  // === End Call ===
-  function endCall() {
-    const callStatus = document.getElementById('callStatus');
-    const dashboard = document.getElementById('dashboardWrapper');
-
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-    }
-
-    if (peerConnection) {
-      peerConnection.close();
-      peerConnection = null;
-    }
-
-    callStatus.textContent = "Call Ended";
-
-    setTimeout(() => {
-      document.getElementById('callModal').classList.add('hidden');
-      document.getElementById('callModal').classList.remove('flex');
-      dashboard.classList.remove('blurred'); // Remove blur
-      callStatus.textContent = "Connecting to Dispatcher...";
-    }, 1200);
-  }
-
-  function toggleMute() {
-    if (!localStream) return;
-    isMuted = !isMuted;
-    localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-    document.getElementById('muteBtn').classList.toggle('bg-gray-500');
-  }
-
-  function toggleSpeaker() {
-    isSpeakerOn = !isSpeakerOn;
-    document.getElementById('speakerBtn').classList.toggle('bg-gray-500');
-  }
+  // Smooth scroll and center section on click
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId.length > 1) { // Ignore links like "#"
+        e.preventDefault();
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center" // 👈 This centers the section vertically
+          });
+        }
+      }
+    });
+  });
 </script>
 
-
-</body>
 </html>
