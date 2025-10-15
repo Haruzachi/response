@@ -53,7 +53,7 @@
     #searchBox {
       width: calc(100% - 40px);
       margin: 0 20px 10px 20px;
-      padding: 12px 15px;
+      padding: 5px 5px;
       border: 1px solid #ccc;
       border-radius: 50px;
       font-size: 15px;
