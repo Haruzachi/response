@@ -197,6 +197,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['feedback'])) {
   </div>
 </section>
 
+<!---============================== USER FEEDBACK SECTION ==============================--->
+    <section id="feedback" class="min-h-screen bg-gradient-to-b from-sky-800 to-stone-800 py-16 px-6">
+  <div class="max-w-4xl mx-auto text-center mb-8">
+    <h2 class="text-3xl font-bold text-white mb-4">Feedback Us</h2>
+    <p class="text-gray-300 max-w-2xl mx-auto">
+      We value your feedback. Please let us know your thoughts about our Emergency Response System.
+    </p>
+  </div>
+
+  <form action="" method="POST" class="max-w-2xl mx-auto space-y-4">
+
+    <textarea 
+      name="feedback" 
+      placeholder="Your Feedback" 
+      rows="5" 
+      class="w-full p-3 rounded-lg bg-stone-800 text-white focus:outline-none" 
+      required
+    ></textarea>
+
+    <button 
+      type="submit" 
+      class="w-full bg-green-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition"
+    >
+      Submit Feedback
+    </button>
+  </form>
+    </section>
+    
     <!---============================== SERVICES SECTION ==============================--->
 <section id="services" class="min-h-screen bg-gradient-to-b from-stone-800 to-sky-800 py-16 px-6">
 
