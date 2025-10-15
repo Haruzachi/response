@@ -6,6 +6,9 @@
   <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Boxicons for home icon -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
   <style>
     html, body, #map {
       height: 100%;
@@ -45,6 +48,35 @@
       text-align: left;
       margin: 20px;
       margin-bottom: 10px;
+    }
+
+    /* Home button */
+    .home-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0077ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: calc(100% - 40px);
+      margin: 15px 20px 10px 20px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .home-btn i {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    .home-btn:hover {
+      background: #005fcc;
+      transform: scale(1.03);
     }
 
     #searchBox {
@@ -134,59 +166,6 @@
       border-top: 1px solid #eee;
     }
 
-    /* Modal */
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .modal-content {
-      background: #fff;
-      width: 400px;
-      max-height: 80vh;
-      overflow-y: auto;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    }
-
-    .modal-content h2 {
-      color: #0077ff;
-      margin-top: 0;
-    }
-
-    .modal-content h3 {
-      color: #333;
-      margin-top: 15px;
-    }
-
-    .modal-content p, .modal-content ul {
-      color: #444;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .close-btn {
-      background: #0077ff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 14px;
-      margin-top: 15px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .close-btn:hover {
-      background: #005fcc;
-    }
-
     /* Map logo button */
     .map-logo {
       position: absolute;
@@ -212,7 +191,7 @@
     .map-style-menu {
       position: absolute;
       top: 35px;
-      left: 70px;
+      left: 65px;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -257,6 +236,11 @@
 <!-- Sidebar -->
 <div id="sidebar">
   <div>
+    <!-- 🏠 Home Button -->
+    <a href="dashboard.php" class="home-btn">
+      <i class='bx bx-home-alt'></i> Home
+    </a>
+
     <h2>Search Location</h2>
     <input type="text" id="searchBox" placeholder="Search location...">
     <button onclick="manualSearch()">Find</button>
@@ -292,7 +276,6 @@
 <script>
   const philippinesBounds = L.latLngBounds([4.2158, 116.1474], [21.3210, 126.8070]);
 
-  // Map initialization
   const map = L.map('map', {
     zoomAnimation: true,
     fadeAnimation: true,
@@ -300,7 +283,6 @@
     maxBoundsViscosity: 1.0
   }).setView([12.8797, 121.7740], 6);
 
-  // Base layers
   const defaultLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
   });
@@ -315,7 +297,6 @@
 
   let currentBase = defaultLayer.addTo(map);
 
-  // Switch base maps
   function setBase(type) {
     map.removeLayer(currentBase);
     if (type === 'satellite') currentBase = satelliteLayer.addTo(map);
@@ -324,16 +305,13 @@
     document.getElementById('mapMenu').style.display = 'none';
   }
 
-  // Toggle map style menu
   function toggleMapMenu() {
     const menu = document.getElementById('mapMenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
   }
 
-  // Marker handler
   let currentMarker = null;
 
-  // URL search query
   const params = new URLSearchParams(window.location.search);
   const q = params.get('location');
   if (q) {
@@ -361,13 +339,9 @@
           alert("No matching location found in the Philippines for: " + query);
         }
       })
-      .catch(err => {
-        console.error(err);
-        alert("Error fetching location data.");
-      });
+      .catch(() => alert("Error fetching location data."));
   }
 
-  // Modal handler
   function openModal(type) {
     const modal = document.getElementById('hazardModal');
     const content = document.getElementById('modalContent');
