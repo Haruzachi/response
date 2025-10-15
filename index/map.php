@@ -6,9 +6,6 @@
   <link rel="icon" type="../image/x-icon" href="../img/Logocircle.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- 3D OSM Buildings plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/osmbuildings@0.2.2/OSMBuildings-Leaflet.js"></script>
-
   <style>
     html, body, #map {
       height: 100%;
@@ -21,11 +18,12 @@
       overflow: hidden;
     }
 
+    /* MAP AREA */
     #map {
       z-index: 1;
     }
 
-    /* Sidebar */
+    /* NOAH-style Sidebar */
     #sidebar {
       position: absolute;
       top: 0;
@@ -41,6 +39,7 @@
       box-shadow: -4px 0 15px rgba(0,0,0,0.15);
     }
 
+    /* Header style */
     #sidebar h2 {
       font-size: 18px;
       font-weight: 600;
@@ -50,6 +49,7 @@
       margin-bottom: 10px;
     }
 
+    /* Search box */
     #searchBox {
       width: calc(100% - 70px);
       margin: 0 20px 10px 20px;
@@ -68,6 +68,7 @@
       box-shadow: 0 0 5px rgba(0,119,255,0.3);
     }
 
+    /* Find button */
     #sidebar button {
       width: calc(100% - 40px);
       margin: 0 20px;
@@ -86,6 +87,7 @@
       background: #005fcc;
     }
 
+    /* Information Section */
     .info-section {
       padding: 15px 20px;
       border-top: 1px solid #eee;
@@ -114,6 +116,11 @@
       color: #333;
     }
 
+    .hazard-box small {
+      color: #666;
+      font-size: 12px;
+    }
+
     .hazard-box i {
       font-style: normal;
       background: #0077ff;
@@ -123,6 +130,7 @@
       font-size: 12px;
     }
 
+    /* Footer */
     #footer {
       text-align: center;
       font-size: 12px;
@@ -144,17 +152,29 @@
 
     <div class="info-section">
       <h3>Hazard Levels In Your Area</h3>
-      <div class="hazard-box"><span>Flood Hazard Level</span><i>LOW</i></div>
-      <div class="hazard-box"><span>Landslide Hazard Level</span><i>LOW</i></div>
-      <div class="hazard-box"><span>Storm Surge Hazard Level</span><i>LOW</i></div>
+      <div class="hazard-box">
+        <span>Flood Hazard Level</span>
+        <i>LOW</i>
+      </div>
+      <div class="hazard-box">
+        <span>Landslide Hazard Level</span>
+        <i>LOW</i>
+      </div>
+      <div class="hazard-box">
+        <span>Storm Surge Hazard Level</span>
+        <i>LOW</i>
+      </div>
     </div>
   </div>
   <div id="footer">QCProtektado © 2025</div>
 </div>
 
 <script>
-  // Define PH bounds
-  const philippinesBounds = L.latLngBounds([4.2158, 116.1474], [21.3210, 126.8070]);
+  // Define the Philippines bounds
+  const philippinesBounds = L.latLngBounds(
+    [4.2158, 116.1474],
+    [21.3210, 126.8070]
+  );
 
   // Initialize map
   const map = L.map('map', {
@@ -162,40 +182,63 @@
     fadeAnimation: true,
     maxBounds: philippinesBounds,
     maxBoundsViscosity: 1.0
-  }).setView([14.676, 121.043], 15); // Quezon City area
+  }).setView([12.8797, 121.7740], 6);
 
-  // Base map (OpenStreetMap)
+  // Base map layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
+    minZoom: 5,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Add OSM Buildings 3D layer
-  const osmb = new OSMBuildings(map)
-    .load();
-
-  // Search functionality
+  // Marker holder
   let currentMarker = null;
 
+  // URL search query
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('location');
+  if (q) {
+    fetchLocation(q);
+    document.getElementById('searchBox').value = q;
+  }
+
+  // Manual search
   function manualSearch() {
     const input = document.getElementById('searchBox').value.trim();
-    if (!input) return alert("Please enter a location.");
-
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(input)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          const { lat, lon } = data[0];
-          const target = L.latLng(lat, lon);
-          if (currentMarker) map.removeLayer(currentMarker);
-          currentMarker = L.marker(target).addTo(map);
-          map.setView(target, 17);
-        } else {
-          alert("No matching location found in the Philippines for: " + input);
-        }
-      })
-      .catch(() => alert("Error fetching location data."));
+    if (input) {
+      fetchLocation(input);
+    } else {
+      alert("Please enter a location.");
+    }
   }
+
+  // Fetch location and show marker
+function fetchLocation(query) {
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=PH&q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        const target = L.latLng(lat, lon);
+
+        if (currentMarker) {
+          map.removeLayer(currentMarker);
+        }
+
+        // Add marker without popup
+        currentMarker = L.marker(target).addTo(map);
+
+        // Center and zoom to marker
+        map.setView(target, 16, { animate: true });
+      } else {
+        alert("No matching location found in the Philippines for: " + query);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error fetching location data.");
+    });
+}
 </script>
 </body>
 </html>
