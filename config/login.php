@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
                     $mail->Username   = 'dvonderick@gmail.com';  // your Gmail
-                    $mail->Password   = 'YOUR_APP_PASSWORD';     // Gmail App Password
+                    $mail->Password   = 'k09205578996';     // Gmail App Password
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
@@ -118,9 +118,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
 
                     // Content
                     $mail->isHTML(true);
-                    $mail->Subject = 'Your Starbike Verification Code';
+                    $mail->Subject = 'Your ERS Verification Code';
                     $mail->Body    = "
-                        <h2>Starbike Login Verification</h2>
+                        <h2>ERS Login Verification</h2>
                         <p>Hello <b>{$_SESSION['user']['username']}</b>,</p>
                         <p>Your One-Time Password (OTP) is:</p>
                         <h1 style='color:#2E86C1;'>{$_SESSION['otp']}</h1>
