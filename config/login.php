@@ -103,18 +103,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                 $mail = new PHPMailer(true);
 
                 try {
-                    // -----------------------
-                    // DEBUG (remove in production)
-                    // -----------------------
-                    $mail->SMTPDebug = 2;               // 0 = off, 1 = client messages, 2 = client and server
-                    $mail->Debugoutput = 'html';
-
                     // Server settings
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
                     $mail->Username   = 'dvonderick@gmail.com';  // your Gmail
-                    $mail->Password   = 'ixllkhukjdddmuev';               // <-- your app password placed here (as requested)
+                    $mail->Password   = 'ixllkhukjdddmuev';     // Gmail App Password
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
@@ -137,10 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                     echo "<script>alert('Verification code sent to your email!');</script>";
 
                 } catch (Exception $e) {
-                    // show the PHPMailer/Gmail error (helpful while debugging)
-                    $err = $mail->ErrorInfo ?: $e->getMessage();
-                    echo "<div style='white-space:pre-wrap;background:#fee;padding:10px;border:1px solid #fcc;margin:10px 0;'>SMTP Debug Output:\n" . htmlentities($err) . "</div>";
-                    echo "<script>alert('Error sending OTP: " . addslashes($err) . "');</script>";
+                    echo "<script>alert('Error sending OTP: " . addslashes($mail->ErrorInfo) . "');</script>";
                 }
 
             } else {
@@ -223,7 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     }
 }
 ?>
-
 
 
 
