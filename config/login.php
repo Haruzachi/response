@@ -3,6 +3,9 @@ require_once "../config/db.php";
 require_once "../vendor/autoload.php"; // ✅ Composer autoloader for PHPMailer
 session_start();
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 //______________________________________________//
 // AUTO-RESET 2FA STATE IF NOT LOGGED IN OR EXPIRED
 //______________________________________________//
@@ -95,14 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                 $_SESSION['otp'] = rand(100000, 999999);
                 $_SESSION['otp_expiry'] = time() + 300; // 5 minutes
 
-                // PHPMailer integration
-                require_once '../PHPMailer/src/PHPMailer.php';
-                require_once '../PHPMailer/src/SMTP.php';
-                require_once '../PHPMailer/src/Exception.php';
-
-                use PHPMailer\PHPMailer\PHPMailer;
-                use PHPMailer\PHPMailer\Exception;
-
                 $mail = new PHPMailer(true);
 
                 try {
@@ -110,14 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
-                    $mail->Username   = 'dvonderick@gmail.com';  // your Gmail address
-                    $mail->Password   = 'YOUR_APP_PASSWORD';     // your Gmail App Password
+                    $mail->Username   = 'dvonderick@gmail.com';  // your Gmail
+                    $mail->Password   = 'YOUR_APP_PASSWORD';     // Gmail App Password
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
                     // Recipients
                     $mail->setFrom('dvonderick@gmail.com', 'Starbike Security');
-                    $mail->addAddress('dvonderick@gmail.com'); // recipient (currently fixed to your Gmail)
+                    $mail->addAddress('dvonderick@gmail.com'); // or dynamic recipient
 
                     // Content
                     $mail->isHTML(true);
@@ -157,8 +152,7 @@ if (isset($_POST['verify_otp'])) {
     $entered_otp = trim($_POST['otp']);
 
     if (isset($_SESSION['otp']) && $entered_otp == $_SESSION['otp'] && time() < $_SESSION['otp_expiry']) {
-        unset($_SESSION['otp']);
-        unset($_SESSION['otp_expiry']);
+        unset($_SESSION['otp'], $_SESSION['otp_expiry']);
 
         $role = $_SESSION['user']['role'] ?? '';
 
@@ -178,9 +172,7 @@ if (isset($_POST['verify_otp'])) {
         }
         exit;
     } else {
-        unset($_SESSION['otp']);
-        unset($_SESSION['otp_expiry']);
-        unset($_SESSION['user']);
+        unset($_SESSION['otp'], $_SESSION['otp_expiry'], $_SESSION['user']);
         $_SESSION['login_error'] = "Invalid or expired verification code. Please log in again.";
         header("Location: login.php");
         exit;
@@ -220,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>
