@@ -1,5 +1,6 @@
 <?php
 require_once "../config/db.php";
+require_once "../vendor/autoload.php"; // ✅ Composer autoloader for PHPMailer
 session_start();
 
 //______________________________________________//
