@@ -89,13 +89,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                 $_SESSION['just_logged_in'] = true;
 
                 //______________________________________________//
-                // 2FA: Generate OTP
+                // 2FA: Generate OTP and Send via Email
                 //______________________________________________//
                 $_SESSION['otp'] = rand(100000, 999999);
                 $_SESSION['otp_expiry'] = time() + 300; // 5 minutes
 
-                // (Temporary) Display OTP — replace later with email sending
-                echo "<script>alert('Your verification code is: " . $_SESSION['otp'] . "');</script>";
+                // PHPMailer integration
+                require_once '../PHPMailer/src/PHPMailer.php';
+                require_once '../PHPMailer/src/SMTP.php';
+                require_once '../PHPMailer/src/Exception.php';
+
+                use PHPMailer\PHPMailer\PHPMailer;
+                use PHPMailer\PHPMailer\Exception;
+
+                $mail = new PHPMailer(true);
+
+                try {
+                    // Server settings
+                    $mail->isSMTP();
+                    $mail->Host       = 'smtp.gmail.com';
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = 'dvonderick@gmail.com';  // your Gmail address
+                    $mail->Password   = 'YOUR_APP_PASSWORD';     // your Gmail App Password
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = 587;
+
+                    // Recipients
+                    $mail->setFrom('dvonderick@gmail.com', 'Starbike Security');
+                    $mail->addAddress('dvonderick@gmail.com'); // recipient (currently fixed to your Gmail)
+
+                    // Content
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Your Starbike Verification Code';
+                    $mail->Body    = "
+                        <h2>Starbike Login Verification</h2>
+                        <p>Hello <b>{$_SESSION['user']['username']}</b>,</p>
+                        <p>Your One-Time Password (OTP) is:</p>
+                        <h1 style='color:#2E86C1;'>{$_SESSION['otp']}</h1>
+                        <p>This code will expire in 5 minutes.</p>
+                    ";
+
+                    $mail->send();
+                    echo "<script>alert('Verification code sent to your email!');</script>";
+
+                } catch (Exception $e) {
+                    echo "<script>alert('Error sending OTP: " . addslashes($mail->ErrorInfo) . "');</script>";
+                }
+
             } else {
                 $_SESSION['login_attempts']++;
                 $_SESSION['last_attempt_time'] = time();
@@ -137,7 +177,6 @@ if (isset($_POST['verify_otp'])) {
         }
         exit;
     } else {
-        // Wrong or expired OTP → reset session and redirect to login
         unset($_SESSION['otp']);
         unset($_SESSION['otp_expiry']);
         unset($_SESSION['user']);
@@ -180,6 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_password'])) {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
