@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
                     $mail->Username   = 'dvonderick@gmail.com';  // your Gmail
-                    $mail->Password   = 'SMTPERS';               // <-- your app password placed here (as requested)
+                    $mail->Password   = 'ixllkhukjdddmuev';               // <-- your app password placed here (as requested)
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
