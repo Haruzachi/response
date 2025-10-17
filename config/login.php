@@ -113,19 +113,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
                     $mail->Port       = 587;
 
                     // Recipients
-                    $mail->setFrom('dvonderick@gmail.com', 'Starbike Security');
+                    $mail->setFrom('dvonderick@gmail.com', 'ERS Security');
                     $mail->addAddress('dvonderick@gmail.com'); // or dynamic recipient
 
                     // Content
                     $mail->isHTML(true);
-                    $mail->Subject = 'Your ERS Verification Code';
-                    $mail->Body    = "
-                        <h2>ERS Login Verification</h2>
-                        <p>Hello <b>{$_SESSION['user']['username']}</b>,</p>
-                        <p>Your One-Time Password (OTP) is:</p>
-                        <h1 style='color:#2E86C1;'>{$_SESSION['otp']}</h1>
-                        <p>This code will expire in 5 minutes.</p>
-                    ";
+$mail->Subject = '🔐 ERS Login Verification Code';
+
+$mail->Body = '
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #f4f6f7;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    background-color: #ffffff;
+    max-width: 500px;
+    margin: 40px auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.header {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+}
+.header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+.content {
+    padding: 25px;
+    color: #333333;
+}
+.content p {
+    font-size: 15px;
+    line-height: 1.6;
+}
+.otp-box {
+    text-align: center;
+    background-color: #ecf0f1;
+    border-radius: 8px;
+    margin: 20px 0;
+    padding: 15px;
+    font-size: 30px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    color: #2e86c1;
+}
+.footer {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    background-color: #f4f6f7;
+    padding: 15px;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>ERS Security Verification</h2>
+        </div>
+        <div class="content">
+            <p>Hello <b>' . htmlspecialchars($_SESSION["user"]["username"]) . '</b>,</p>
+            <p>We received a login attempt to your ERS account. Please verify your identity by entering the following One-Time Password (OTP):</p>
+            
+            <div class="otp-box">' . $_SESSION["otp"] . '</div>
+            
+            <p>This code will expire in <b>5 minutes</b>.</p>
+            <p>If you didn’t request this, please ignore this email or contact your administrator immediately.</p>
+        </div>
+        <div class="footer">
+            &copy; ' . date("Y") . ' ERS Security System. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>';
 
                     $mail->send();
                     echo "<script>alert('Verification code sent to your email!');</script>";
