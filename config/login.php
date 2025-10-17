@@ -1,6 +1,8 @@
 <?php
 require_once "../config/db.php";
-require_once "../vendor/autoload.php"; // ✅ Composer autoloader for PHPMailer
+require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
+require_once __DIR__ . '/../PHPMailer/src/Exception.php';
 session_start();
 
 use PHPMailer\PHPMailer\PHPMailer;
