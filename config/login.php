@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['forgot_password']) &
 
                     // Content
                     $mail->isHTML(true);
-$mail->Subject = '🔐 ERS Login Verification Code';
+$mail->Subject = 'ERS Login Verification Code';
 
 $mail->Body = '
 <!DOCTYPE html>
